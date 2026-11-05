@@ -1,340 +1,279 @@
-import React, { useEffect, useState } from 'react';
-import { useAuth } from '../context/AuthContext';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useFormik } from 'formik';
 import axiosClient from '../api/axiosClient';
-
-const DEPARTMENTS = ['GENERAL_OPD', 'PEDIATRICS', 'CARDIOLOGY', 'OBGYN', 'ORTHOPEDICS', 'DENTAL'];
+import { onboardDoctorSchema } from '../utils/validationSchemas';
 
 export default function SuperAdminDashboard() {
-  const { user, logout } = useAuth();
-  const [analytics, setAnalytics] = useState([]);
   const [doctors, setDoctors] = useState([]);
-  const [statusMsg, setStatusMsg] = useState({ type: '', text: '' });
-  const [loading, setLoading] = useState(false);
+  const [analytics, setAnalytics] = useState([]);
+  const [feedback, setFeedback] = useState({ type: '', text: '' });
 
-  const [doctorForm, setDoctorForm] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
-    password: '',
-    department: 'GENERAL_OPD',
-    specialization: '',
-    consultationRoom: '',
-    avgConsultationTimeMins: 15,
-  });
-
-  const fetchDashboardData = async () => {
+  const fetchAdminData = useCallback(async () => {
     try {
-      const [analyticsRes, doctorsRes] = await Promise.all([
-        axiosClient.get('/admin/analytics'),
+      const [docsRes, analyticsRes] = await Promise.all([
         axiosClient.get('/admin/doctors'),
+        axiosClient.get('/admin/analytics'),
       ]);
+      setDoctors(docsRes.data.data || []);
       setAnalytics(analyticsRes.data.analytics || []);
-      setDoctors(doctorsRes.data.data || []);
     } catch (err) {
       console.error('Error loading admin dashboard:', err);
     }
-  };
-
-  useEffect(() => {
-    fetchDashboardData();
   }, []);
 
-  const handleDoctorInput = (e) => {
-    const { name, value } = e.target;
-    setDoctorForm((prev) => ({ ...prev, [name]: value }));
-  };
+  useEffect(() => {
+    fetchAdminData();
+  }, [fetchAdminData]);
 
-  const handleOnboardDoctor = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setStatusMsg({ type: '', text: '' });
+  const formik = useFormik({
+    initialValues: {
+      fullName: '',
+      email: '',
+      phone: '',
+      password: '',
+      department: 'GENERAL_OPD',
+      specialization: 'General Medical Officer',
+      consultationRoom: 'Room 101',
+      avgConsultationTimeMins: 15,
+    },
+    validationSchema: onboardDoctorSchema,
+    onSubmit: async (values, { setSubmitting, resetForm }) => {
+      setFeedback({ type: '', text: '' });
+      try {
+        await axiosClient.post('/admin/doctors', values);
+        setFeedback({ type: 'success', text: `Onboarded Dr. ${values.fullName} successfully!` });
+        resetForm();
+        await fetchAdminData();
+      } catch (err) {
+        setFeedback({
+          type: 'error',
+          text: err.response?.data?.message || 'Failed to onboard doctor.',
+        });
+      } finally {
+        setSubmitting(false);
+      }
+    },
+  });
 
+  const handleToggleAvailability = async (doctorId, currentStatus) => {
     try {
-      await axiosClient.post('/admin/doctors', {
-        ...doctorForm,
-        avgConsultationTimeMins: Number(doctorForm.avgConsultationTimeMins),
+      await axiosClient.patch(`/admin/doctors/${doctorId}/availability`, {
+        isAvailableToday: !currentStatus,
       });
-
-      setStatusMsg({
-        type: 'success',
-        text: `${doctorForm.fullName} onboarded to ${doctorForm.department} successfully!`,
-      });
-
-      setDoctorForm({
-        fullName: '',
-        email: '',
-        phone: '',
-        password: '',
-        department: 'GENERAL_OPD',
-        specialization: '',
-        consultationRoom: '',
-        avgConsultationTimeMins: 15,
-      });
-
-      fetchDashboardData();
+      await fetchAdminData();
     } catch (err) {
-      setStatusMsg({
-        type: 'error',
-        text: err.response?.data?.message || 'Failed to onboard doctor.',
-      });
-    } finally {
-      setLoading(false);
+      console.error(err);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#1E293B] p-6 font-sans">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header */}
-        <header className="flex flex-wrap justify-between items-center bg-[#1E293B] text-white p-6 rounded-2xl shadow-md gap-4">
-          <div>
-            <span className="bg-[#10B981] text-slate-900 font-bold text-xs px-3 py-1 rounded-full uppercase">
-              SUPER_ADMIN • {user?.fullName}
-            </span>
-            <h1 className="text-2xl font-bold mt-2">Hospital Command & Staff Management</h1>
-            <p className="text-slate-400 text-xs mt-0.5">
-              Onboard medical doctors and evaluate real-time department waiting bottlenecks
-            </p>
-          </div>
-          <button
-            onClick={logout}
-            className="bg-slate-700 hover:bg-red-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition"
-          >
-            Sign Out
-          </button>
-        </header>
+    <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
+      <div className="bg-[#312E81] text-white p-6 rounded-3xl shadow-lg">
+        <span className="text-xs font-extrabold uppercase tracking-widest text-[#10B981]">
+          Hospital System Administration
+        </span>
+        <h1 className="text-2xl font-extrabold mt-1">
+          Staff Onboarding & Throughput Analytics
+        </h1>
+      </div>
 
-        {/* Top Grid: Add Doctor Form + Active Doctors Directory */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <div className="lg:col-span-5 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-            <h2 className="text-lg font-bold text-[#312E81] border-b pb-3 mb-4">
-              + Onboard New Doctor
-            </h2>
+      {feedback.text && (
+        <div
+          className={`p-4 rounded-2xl text-xs font-bold ${
+            feedback.type === 'success'
+              ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+              : 'bg-red-50 text-red-700 border border-red-200'
+          }`}
+        >
+          {feedback.text}
+        </div>
+      )}
 
-            {statusMsg.text && (
-              <div
-                className={`p-3 rounded-xl text-xs font-medium mb-4 ${
-                  statusMsg.type === 'success'
-                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                    : 'bg-red-50 text-red-700 border border-red-200'
-                }`}
-              >
-                {statusMsg.text}
-              </div>
-            )}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Onboard Doctor Form */}
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 space-y-4">
+          <h2 className="text-lg font-extrabold text-[#1E293B]">Onboard New Physician</h2>
 
-            <form onSubmit={handleOnboardDoctor} className="space-y-3.5 text-sm">
+          <form onSubmit={formik.handleSubmit} noValidate className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Full Name</label>
                 <input
                   type="text"
                   name="fullName"
-                  required
-                  value={doctorForm.fullName}
-                  onChange={handleDoctorInput}
-                  placeholder="e.g. Dr. Chika Nwosu"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300"
+                  placeholder="Dr. Full Name"
+                  {...formik.getFieldProps('fullName')}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm"
                 />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Work Email</label>
-                  <input
-                    type="email"
-                    name="email"
-                    required
-                    value={doctorForm.email}
-                    onChange={handleDoctorInput}
-                    placeholder="dr.chika@hospital.ng"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Phone</label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    required
-                    value={doctorForm.phone}
-                    onChange={handleDoctorInput}
-                    placeholder="+2348030000000"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Department</label>
-                  <select
-                    name="department"
-                    value={doctorForm.department}
-                    onChange={handleDoctorInput}
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-white"
-                  >
-                    {DEPARTMENTS.map((dept) => (
-                      <option key={dept} value={dept}>{dept}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Specialization</label>
-                  <input
-                    type="text"
-                    name="specialization"
-                    required
-                    value={doctorForm.specialization}
-                    onChange={handleDoctorInput}
-                    placeholder="e.g. Family Medicine"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Consultation Room</label>
-                  <input
-                    type="text"
-                    name="consultationRoom"
-                    required
-                    value={doctorForm.consultationRoom}
-                    onChange={handleDoctorInput}
-                    placeholder="Room 102 - OPD"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Slot Duration (Mins)</label>
-                  <input
-                    type="number"
-                    name="avgConsultationTimeMins"
-                    min={5}
-                    max={60}
-                    required
-                    value={doctorForm.avgConsultationTimeMins}
-                    onChange={handleDoctorInput}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300"
-                  />
-                </div>
+                {formik.touched.fullName && formik.errors.fullName && (
+                  <p className="text-[11px] text-red-600 mt-0.5">{formik.errors.fullName}</p>
+                )}
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Assign Password</label>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="doctor@hospital.ng"
+                  {...formik.getFieldProps('email')}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm"
+                />
+                {formik.touched.email && formik.errors.email && (
+                  <p className="text-[11px] text-red-600 mt-0.5">{formik.errors.email}</p>
+                )}
+              </div>
+
+              <div>
+                <input
+                  type="tel"
+                  name="phone"
+                  placeholder="08012345678"
+                  {...formik.getFieldProps('phone')}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm"
+                />
+                {formik.touched.phone && formik.errors.phone && (
+                  <p className="text-[11px] text-red-600 mt-0.5">{formik.errors.phone}</p>
+                )}
+              </div>
+
+              <div>
                 <input
                   type="password"
                   name="password"
-                  required
-                  minLength={8}
-                  value={doctorForm.password}
-                  onChange={handleDoctorInput}
-                  placeholder="Min. 8 characters"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300"
+                  placeholder="Temp Password (min 8 chars)"
+                  {...formik.getFieldProps('password')}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm"
+                />
+                {formik.touched.password && formik.errors.password && (
+                  <p className="text-[11px] text-red-600 mt-0.5">{formik.errors.password}</p>
+                )}
+              </div>
+
+              <div>
+                <select
+                  name="department"
+                  {...formik.getFieldProps('department')}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm bg-white"
+                >
+                  {[
+                    'GENERAL_OPD',
+                    'PEDIATRICS',
+                    'CARDIOLOGY',
+                    'OBGYN',
+                    'ORTHOPEDICS',
+                    'DENTAL',
+                  ].map((d) => (
+                    <option key={d} value={d}>
+                      {d}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <input
+                  type="text"
+                  name="consultationRoom"
+                  placeholder="Room (e.g. Room 102)"
+                  {...formik.getFieldProps('consultationRoom')}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm"
                 />
               </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-[#312E81] hover:bg-indigo-900 disabled:opacity-50 text-white font-bold py-3 rounded-xl shadow transition"
-              >
-                {loading ? 'Onboarding Doctor...' : 'Create Doctor Account'}
-              </button>
-            </form>
-          </div>
-
-          {/* Registered Doctors Table */}
-          <div className="lg:col-span-7 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-            <div className="flex justify-between items-center border-b pb-3 mb-4">
-              <h2 className="text-lg font-bold text-[#1E293B]">Onboarded Hospital Doctors</h2>
-              <span className="bg-slate-100 text-slate-700 text-xs font-bold px-3 py-1 rounded-full">
-                {doctors.length} Active
-              </span>
             </div>
 
-            <div className="overflow-x-auto max-h-[420px]">
-              <table className="w-full text-left border-collapse text-sm">
-                <thead>
-                  <tr className="bg-slate-50 text-slate-500 text-xs uppercase">
-                    <th className="p-3">Doctor</th>
-                    <th className="p-3">Department</th>
-                    <th className="p-3">Room</th>
-                    <th className="p-3">Slot Interval</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200">
-                  {doctors.map((doc) => (
-                    <tr key={doc._id} className="hover:bg-slate-50">
-                      <td className="p-3">
-                        <strong className="block text-slate-800">{doc.fullName}</strong>
-                        <span className="text-xs text-slate-400">{doc.email}</span>
-                      </td>
-                      <td className="p-3">
-                        <span className="bg-indigo-50 text-[#312E81] text-xs font-bold px-2.5 py-1 rounded-full">
-                          {doc.doctorProfile?.department}
-                        </span>
-                      </td>
-                      <td className="p-3 font-medium">{doc.doctorProfile?.consultationRoom}</td>
-                      <td className="p-3 text-slate-500">{doc.doctorProfile?.avgConsultationTimeMins} mins</td>
-                    </tr>
-                  ))}
-                  {doctors.length === 0 && (
-                    <tr>
-                      <td colSpan="4" className="p-8 text-center text-slate-400">
-                        No doctors registered yet. Use the form on the left to add doctors.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+            <button
+              type="submit"
+              disabled={formik.isSubmitting}
+              className="w-full bg-[#0D9488] hover:bg-teal-700 text-white font-bold py-3 rounded-xl shadow transition text-sm"
+            >
+              {formik.isSubmitting ? 'Onboarding Doctor...' : '+ Onboard Doctor'}
+            </button>
+          </form>
         </div>
 
-        {/* Department Flow & Bottleneck Analytics */}
-        <div className="space-y-4">
-          <h2 className="text-lg font-bold text-[#1E293B]">
-            Real-Time Department Queue & Waiting Time Analytics
+        {/* Department Analytics */}
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 space-y-4">
+          <h2 className="text-lg font-extrabold text-[#1E293B]">
+            Today's Department Queue Metrics
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {analytics.map((dept) => (
+
+          {analytics.length === 0 ? (
+            <p className="text-xs text-slate-400 py-12 text-center">
+              No queue activity recorded for today yet.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {analytics.map((item, idx) => (
+                <div
+                  key={item.department || item._id || idx}
+                  className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex justify-between items-center"
+                >
+                  <div>
+                    <span className="font-extrabold text-sm text-[#312E81]">
+                      {item.department || item._id}
+                    </span>
+                    <p className="text-xs text-slate-500">
+                      Total Tickets: <strong>{item.totalPatients}</strong>
+                    </p>
+                  </div>
+                  <div className="flex gap-3 text-xs font-bold">
+                    <span className="px-3 py-1 rounded-full bg-amber-100 text-amber-800">
+                      Waiting: {item.waitingCount}
+                    </span>
+                    <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800">
+                      Completed: {item.completedCount}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Medical Staff Directory */}
+      <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 space-y-4">
+        <h2 className="text-lg font-extrabold text-[#1E293B]">
+          Onboarded Medical Staff ({doctors.length})
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {doctors.map((doc) => {
+            const isAvailable = doc.doctorProfile?.isAvailableToday;
+            return (
               <div
-                key={dept.department}
-                className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4"
+                key={doc._id}
+                className="p-4 rounded-2xl border border-slate-200 bg-slate-50 space-y-2"
               >
-                <div className="flex justify-between items-center border-b pb-3">
-                  <h3 className="font-bold text-base text-[#312E81]">{dept.department}</h3>
-                  <span className="text-xs font-semibold bg-slate-100 px-2.5 py-1 rounded-full">
-                    Total Tickets: {dept.totalPatients}
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="font-bold text-sm text-[#1E293B]">{doc.fullName}</h3>
+                    <p className="text-xs text-slate-500">{doc.email}</p>
+                  </div>
+                  <span
+                    className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
+                      isAvailable
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : 'bg-red-100 text-red-700'
+                    }`}
+                  >
+                    {isAvailable ? 'ON DUTY' : 'OFF DUTY'}
                   </span>
                 </div>
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div className="bg-slate-50 p-3 rounded-xl">
-                    <span className="text-slate-400 text-xs block">Avg Wait Time</span>
-                    <strong className="text-xl text-amber-600">{dept.avgWaitTimeMins}m</strong>
-                  </div>
-                  <div className="bg-slate-50 p-3 rounded-xl">
-                    <span className="text-slate-400 text-xs block">Avg Consult Time</span>
-                    <strong className="text-xl text-[#0D9488]">{dept.avgConsultationMins}m</strong>
-                  </div>
-                  <div className="bg-slate-50 p-3 rounded-xl">
-                    <span className="text-slate-400 text-xs block">Waiting Now</span>
-                    <strong className="text-lg">{dept.waitingCount}</strong>
-                  </div>
-                  <div className="bg-slate-50 p-3 rounded-xl">
-                    <span className="text-slate-400 text-xs block">Completed</span>
-                    <strong className="text-lg text-[#10B981]">{dept.completedCount}</strong>
-                  </div>
-                </div>
+
+                <p className="text-xs font-semibold text-[#312E81]">
+                  {doc.doctorProfile?.department} • {doc.doctorProfile?.consultationRoom}
+                </p>
+
+                <button
+                  type="button"
+                  onClick={() => handleToggleAvailability(doc._id, isAvailable)}
+                  className="w-full bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold text-xs py-2 rounded-xl transition"
+                >
+                  Toggle Duty Status
+                </button>
               </div>
-            ))}
-            {analytics.length === 0 && (
-              <div className="col-span-3 bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-400 text-sm">
-                No queue activity recorded for today yet. Analytics will populate automatically as patients check in.
-              </div>
-            )}
-          </div>
+            );
+          })}
         </div>
       </div>
     </div>

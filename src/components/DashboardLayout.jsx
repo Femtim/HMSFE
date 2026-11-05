@@ -49,7 +49,6 @@ export default function DashboardLayout({ children }) {
 
   const navItems = roleNavigation[user?.role] || roleNavigation.PATIENT;
 
-  // Formik for Password Update in Settings
   const passwordFormik = useFormik({
     initialValues: {
       currentPassword: '',
@@ -73,7 +72,6 @@ export default function DashboardLayout({ children }) {
     },
   });
 
-  // Formik for Permanent Account Deletion in Settings
   const deleteFormik = useFormik({
     initialValues: {
       password: '',
@@ -454,7 +452,6 @@ export default function DashboardLayout({ children }) {
               </div>
             )}
 
-            {/* Section A: Update Password with Formik & Yup */}
             <form onSubmit={passwordFormik.handleSubmit} noValidate className="space-y-3">
               <h4 className="text-xs font-extrabold uppercase text-slate-500">
                 1. Change / Reset Password
@@ -522,7 +519,6 @@ export default function DashboardLayout({ children }) {
               </div>
             </form>
 
-            {/* Section B: Danger Zone - Delete Account with Formik & Yup */}
             <div className="border-t pt-5 space-y-3">
               <h4 className="text-xs font-extrabold uppercase text-red-600">
                 2. Danger Zone — Delete Hospital Account

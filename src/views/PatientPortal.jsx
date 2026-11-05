@@ -1,144 +1,140 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
+import React, { useState, useEffect, useCallback } from 'react';
 import axiosClient from '../api/axiosClient';
-import { socket } from '../api/socketClient';
+import socket from '../api/socketClient';
+import { useAuth } from '../context/AuthContext';
 
-const DEPARTMENTS = ['GENERAL_OPD', 'PEDIATRICS', 'CARDIOLOGY', 'OBGYN', 'ORTHOPEDICS', 'DENTAL'];
+const DEPARTMENTS = [
+  { id: 'GENERAL_OPD', label: 'General OPD' },
+  { id: 'PEDIATRICS', label: 'Pediatrics' },
+  { id: 'CARDIOLOGY', label: 'Cardiology' },
+  { id: 'OBGYN', label: 'Obstetrics & Gynecology' },
+  { id: 'ORTHOPEDICS', label: 'Orthopedics' },
+  { id: 'DENTAL', label: 'Dental Clinic' },
+];
 
 export default function PatientPortal() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   const [department, setDepartment] = useState('GENERAL_OPD');
   const [doctors, setDoctors] = useState([]);
   const [selectedDoctor, setSelectedDoctor] = useState('');
-  const [appointmentDate, setAppointmentDate] = useState(new Date().toISOString().split('T')[0]);
+  const [appointmentDate, setAppointmentDate] = useState(
+    new Date().toISOString().split('T')[0]
+  );
   const [availableSlots, setAvailableSlots] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState(null);
-  const [symptoms, setSymptoms] = useState('');
+  const [symptomsOrReason, setSymptomsOrReason] = useState('');
 
   const [myAppointments, setMyAppointments] = useState([]);
   const [activeTicket, setActiveTicket] = useState(null);
   const [feedback, setFeedback] = useState({ type: '', text: '' });
-  const [bookingLoading, setBookingLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const fetchMyAppointments = async () => {
+  const fetchMyData = useCallback(async () => {
     try {
-      const res = await axiosClient.get('/appointments/my-appointments');
-      setMyAppointments(res.data.data || []);
-    } catch (err) {
-      console.error('Failed to fetch appointments:', err);
-    }
-  };
+      const [aptRes, ticketRes] = await Promise.all([
+        axiosClient.get('/appointments/my-appointments'),
+        axiosClient.get('/queue/my-active-ticket'),
+      ]);
+      setMyAppointments(aptRes.data.data || []);
+      const ticketData = ticketRes.data.data || null;
+      setActiveTicket(ticketData);
 
-  useEffect(() => {
-    fetchMyAppointments();
+      if (ticketData?.department) {
+        socket.emit('join:department', ticketData.department);
+      }
+    } catch (err) {
+      console.error('Error loading patient data:', err);
+    }
   }, []);
 
-  // Load doctors whenever department changes
   useEffect(() => {
-    axiosClient
-      .get(`/appointments/doctors?department=${department}`)
-      .then((res) => {
+    fetchMyData();
+  }, [fetchMyData]);
+
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        const res = await axiosClient.get(`/appointments/doctors?department=${department}`);
         const list = res.data.data || [];
         setDoctors(list);
         setSelectedDoctor(list[0]?._id || '');
-      })
-      .catch(() => setDoctors([]));
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchDoctors();
   }, [department]);
 
-  // Load available slots whenever doctor or date changes
   useEffect(() => {
     if (!selectedDoctor || !appointmentDate) {
       setAvailableSlots([]);
       return;
     }
-    axiosClient
-      .get(`/appointments/slots?doctorId=${selectedDoctor}&date=${appointmentDate}`)
-      .then((res) => {
+    const fetchSlots = async () => {
+      try {
+        const res = await axiosClient.get(
+          `/appointments/slots?doctorId=${selectedDoctor}&date=${appointmentDate}`
+        );
         setAvailableSlots(res.data.availableSlots || []);
         setSelectedSlot(null);
-      })
-      .catch(() => setAvailableSlots([]));
-  }, [selectedDoctor, appointmentDate]);
-
-  // Real-time Socket.io listener for active queue ticket
-  useEffect(() => {
-    if (!activeTicket?.department) return;
-
-    socket.emit('join:department', activeTicket.department);
-
-    const handlePatientCalled = (payload) => {
-      if (payload.ticketNumber === activeTicket.ticketNumber) {
-        setActiveTicket((prev) => ({
-          ...prev,
-          status: 'CALLED',
-          patientsAhead: 0,
-          estimatedWaitTimeMins: 0,
-        }));
-      } else {
-        setActiveTicket((prev) =>
-          prev && prev.patientsAhead > 0
-            ? {
-                ...prev,
-                patientsAhead: prev.patientsAhead - 1,
-                estimatedWaitTimeMins: Math.max(0, prev.estimatedWaitTimeMins - 15),
-              }
-            : prev
-        );
+      } catch (err) {
+        console.error(err);
       }
     };
+    fetchSlots();
+  }, [selectedDoctor, appointmentDate]);
 
-    socket.on('queue:patient_called', handlePatientCalled);
-    return () => socket.off('queue:patient_called', handlePatientCalled);
-  }, [activeTicket]);
+  useEffect(() => {
+    const handleQueueRefresh = () => fetchMyData();
+    socket.on('queue:updated', handleQueueRefresh);
+    socket.on('queue:patient_called', handleQueueRefresh);
+    return () => {
+      socket.off('queue:updated', handleQueueRefresh);
+      socket.off('queue:patient_called', handleQueueRefresh);
+    };
+  }, [fetchMyData]);
 
   const handleBookAppointment = async (e) => {
     e.preventDefault();
-    if (!selectedSlot) {
-      setFeedback({ type: 'error', text: 'Please select an available time slot.' });
+    if (!selectedDoctor || !selectedSlot) {
+      setFeedback({ type: 'error', text: 'Please select a doctor and an available time slot.' });
       return;
     }
 
-    setBookingLoading(true);
+    setLoading(true);
     setFeedback({ type: '', text: '' });
-
     try {
-      const res = await axiosClient.post('/appointments/book', {
+      await axiosClient.post('/appointments/book', {
         doctorId: selectedDoctor,
         appointmentDate,
         startTime: selectedSlot.startTime,
         endTime: selectedSlot.endTime,
-        symptomsOrReason: symptoms,
+        symptomsOrReason,
       });
-
-      setFeedback({
-        type: 'success',
-        text: `Booked! Reference: ${res.data.data.appointmentReference}`,
-      });
-      setSymptoms('');
-      fetchMyAppointments();
-
-      // Refresh open slots
-      const slotsRes = await axiosClient.get(
-        `/appointments/slots?doctorId=${selectedDoctor}&date=${appointmentDate}`
-      );
-      setAvailableSlots(slotsRes.data.availableSlots || []);
+      setFeedback({ type: 'success', text: 'Appointment booked! You can now check in below.' });
+      setSymptomsOrReason('');
       setSelectedSlot(null);
+      await fetchMyData();
     } catch (err) {
       setFeedback({
         type: 'error',
-        text: err.response?.data?.message || 'Could not book slot.',
+        text: err.response?.data?.message || 'Booking failed.',
       });
     } finally {
-      setBookingLoading(false);
+      setLoading(false);
     }
   };
 
   const handleCheckIn = async (appointmentReference) => {
+    setFeedback({ type: '', text: '' });
     try {
-      const res = await axiosClient.post('/queue/check-in', { appointmentReference });
-      setActiveTicket({ ...res.data.data, status: 'WAITING' });
-      fetchMyAppointments();
+      await axiosClient.post('/queue/check-in', { appointmentReference });
+      setFeedback({
+        type: 'success',
+        text: 'Checked into live hospital queue! Your ticket is active.',
+      });
+      await fetchMyData();
     } catch (err) {
       setFeedback({
         type: 'error',
@@ -147,255 +143,233 @@ export default function PatientPortal() {
     }
   };
 
-  const cardNumber = user?.hospitalCardNumber || user?.profile?.hospitalCardNumber || 'HCN-VERIFIED';
+  const handleCancelAppointment = async (appointmentId) => {
+    try {
+      await axiosClient.patch(`/appointments/${appointmentId}/cancel`, {
+        cancellationReason: 'Cancelled by patient via portal',
+      });
+      await fetchMyData();
+    } catch (err) {
+      setFeedback({
+        type: 'error',
+        text: err.response?.data?.message || 'Cancellation failed.',
+      });
+    }
+  };
+
+  const ticketNumber = activeTicket?.ticketNumber;
+  const ticketRoom = activeTicket?.consultationRoom;
+  const ticketDoctor =
+    typeof activeTicket?.doctor === 'string'
+      ? activeTicket.doctor
+      : activeTicket?.doctorId?.fullName || 'Assigned Doctor';
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#1E293B] p-6 font-sans">
-      <div className="max-w-6xl mx-auto space-y-8">
-        {/* Top Bar */}
-        <header className="bg-[#1E293B] text-white p-6 rounded-2xl shadow-md flex flex-wrap justify-between items-center gap-4">
-          <div>
-            <span className="bg-[#0D9488] text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-              Hospital Card: {cardNumber}
-            </span>
-            <h1 className="text-2xl font-bold mt-2">Welcome, {user?.fullName}</h1>
-            <p className="text-slate-400 text-xs mt-0.5">
-              Book appointments and monitor your real-time consultation queue
-            </p>
-          </div>
-          <button
-            onClick={logout}
-            className="bg-slate-700 hover:bg-red-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition"
-          >
-            Sign Out
-          </button>
-        </header>
+    <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
+      {/* Header Banner */}
+      <div className="bg-gradient-to-r from-[#1E293B] to-[#312E81] text-white p-6 rounded-3xl shadow-lg flex flex-wrap justify-between items-center gap-4">
+        <div>
+          <span className="text-xs font-extrabold uppercase tracking-widest text-[#10B981]">
+            Patient Self-Service Portal
+          </span>
+          <h1 className="text-2xl font-extrabold mt-1">Welcome, {user?.fullName}</h1>
+          <p className="text-xs text-indigo-200 mt-0.5">
+            Hospital Card: <strong>{user?.hospitalCardNumber || 'HCN-ACTIVE'}</strong>
+          </p>
+        </div>
 
-        {/* Active Live Queue Ticket Card */}
         {activeTicket && (
-          <div className="bg-white rounded-2xl shadow-lg border-t-8 border-[#10B981] p-8 text-center space-y-5">
-            <span className="inline-block px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-emerald-50 text-emerald-700">
-              {activeTicket.priority} PRIORITY • {activeTicket.department}
+          <div className="bg-[#0D9488] px-6 py-4 rounded-2xl shadow-lg text-center border border-teal-400/30">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-teal-100 block">
+              Active Queue Ticket ({activeTicket.status})
             </span>
-
-            <div>
-              <p className="text-xs uppercase tracking-wider text-slate-400 font-bold">
-                Your Active Queue Ticket
-              </p>
-              <h2 className="text-6xl font-black text-[#1E293B] mt-1">{activeTicket.ticketNumber}</h2>
-            </div>
-
-            {activeTicket.status === 'CALLED' ? (
-              <div className="bg-[#10B981] text-slate-900 p-5 rounded-xl animate-pulse">
-                <p className="text-xl font-extrabold">
-                  🔊 Now Calling! Proceed to {activeTicket.consultationRoom}
-                </p>
-                <p className="text-sm font-medium mt-1">
-                  {activeTicket.doctor} is waiting for you.
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-4 max-w-md mx-auto bg-slate-50 p-5 rounded-xl border border-slate-200">
-                <div>
-                  <p className="text-xs text-slate-500 uppercase font-semibold">Patients Ahead</p>
-                  <p className="text-3xl font-extrabold text-[#312E81] mt-1">
-                    {activeTicket.patientsAhead}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500 uppercase font-semibold">Estimated Wait</p>
-                  <p className="text-3xl font-extrabold text-[#0D9488] mt-1">
-                    ~{activeTicket.estimatedWaitTimeMins}m
-                  </p>
-                </div>
-              </div>
-            )}
-
-            <div className="text-xs text-slate-500 flex justify-center gap-6 border-t pt-4">
-              <span>Doctor: <strong>{activeTicket.doctor}</strong></span>
-              <span>Room: <strong>{activeTicket.consultationRoom}</strong></span>
-            </div>
+            <span className="text-3xl font-black tracking-tight block">
+              {ticketNumber}
+            </span>
+            <span className="text-xs font-semibold text-teal-100">
+              {ticketRoom} • {ticketDoctor}
+            </span>
           </div>
         )}
+      </div>
 
-        {/* Two-Column Workspace */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Left Column: Book Appointment */}
-          <div className="lg:col-span-6 bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-            <h2 className="text-lg font-bold text-[#312E81] border-b pb-3">
-              1. Schedule a Hospital Appointment
-            </h2>
+      {feedback.text && (
+        <div
+          className={`p-4 rounded-2xl text-xs font-bold ${
+            feedback.type === 'success'
+              ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+              : 'bg-red-50 text-red-700 border border-red-200'
+          }`}
+        >
+          {feedback.text}
+        </div>
+      )}
 
-            {feedback.text && (
-              <div
-                className={`p-3 rounded-xl text-xs font-medium ${
-                  feedback.type === 'success'
-                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                    : 'bg-red-50 text-red-700 border border-red-200'
-                }`}
-              >
-                {feedback.text}
-              </div>
-            )}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Column 1: Book New Appointment */}
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 space-y-5">
+          <h2 className="text-lg font-extrabold text-[#1E293B]">
+            1. Book Clinic Appointment
+          </h2>
 
-            <form onSubmit={handleBookAppointment} className="space-y-4 text-sm">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold uppercase text-slate-500 mb-1">
-                    Department
-                  </label>
-                  <select
-                    value={department}
-                    onChange={(e) => setDepartment(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-white"
-                  >
-                    {DEPARTMENTS.map((d) => (
-                      <option key={d} value={d}>{d}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase text-slate-500 mb-1">
-                    Select Doctor
-                  </label>
-                  <select
-                    value={selectedDoctor}
-                    onChange={(e) => setSelectedDoctor(e.target.value)}
-                    disabled={doctors.length === 0}
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-white"
-                  >
-                    {doctors.length === 0 ? (
-                      <option value="">No doctors available</option>
-                    ) : (
-                      doctors.map((doc) => (
-                        <option key={doc._id} value={doc._id}>
-                          {doc.fullName} ({doc.doctorProfile?.consultationRoom})
-                        </option>
-                      ))
-                    )}
-                  </select>
-                </div>
+          <form onSubmit={handleBookAppointment} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold uppercase text-slate-500 mb-1">
+                  Select Department
+                </label>
+                <select
+                  value={department}
+                  onChange={(e) => setDepartment(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm bg-white"
+                >
+                  {DEPARTMENTS.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.label}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
                 <label className="block text-xs font-bold uppercase text-slate-500 mb-1">
-                  Preferred Date
+                  Available Doctor
                 </label>
-                <input
-                  type="date"
-                  value={appointmentDate}
-                  onChange={(e) => setAppointmentDate(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300"
-                />
+                <select
+                  value={selectedDoctor}
+                  onChange={(e) => setSelectedDoctor(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm bg-white"
+                >
+                  {doctors.length === 0 && <option value="">No doctors available</option>}
+                  {doctors.map((doc) => (
+                    <option key={doc._id} value={doc._id}>
+                      {doc.fullName} ({doc.doctorProfile?.consultationRoom})
+                    </option>
+                  ))}
+                </select>
               </div>
+            </div>
 
-              <div>
-                <label className="block text-xs font-bold uppercase text-slate-500 mb-1">
-                  Available 15-Min Slots ({availableSlots.length} open)
-                </label>
-                {availableSlots.length > 0 ? (
-                  <div className="grid grid-cols-4 gap-2 max-h-40 overflow-y-auto p-1">
-                    {availableSlots.map((slot) => (
-                      <button
-                        type="button"
-                        key={slot.startTime}
-                        onClick={() => setSelectedSlot(slot)}
-                        className={`py-2 rounded-lg text-xs font-bold border transition ${
-                          selectedSlot?.startTime === slot.startTime
-                            ? 'bg-[#0D9488] text-white border-[#0D9488]'
-                            : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
-                        }`}
-                      >
-                        {slot.startTime}
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-xs text-slate-400 py-3">
-                    No open slots found. Select an active doctor or another date.
-                  </p>
-                )}
+            <div>
+              <label className="block text-xs font-bold uppercase text-slate-500 mb-1">
+                Appointment Date
+              </label>
+              <input
+                type="date"
+                value={appointmentDate}
+                min={new Date().toISOString().split('T')[0]}
+                onChange={(e) => setAppointmentDate(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase text-slate-500 mb-2">
+                Select Available 15-Min Slot ({availableSlots.length} open)
+              </label>
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-48 overflow-y-auto p-1">
+                {availableSlots.map((slot) => {
+                  const isSelected = selectedSlot?.startTime === slot.startTime;
+                  return (
+                    <button
+                      type="button"
+                      key={slot.startTime}
+                      onClick={() => setSelectedSlot(slot)}
+                      className={`py-2 px-2 rounded-xl text-xs font-bold border transition ${
+                        isSelected
+                          ? 'bg-[#0D9488] text-white border-[#0D9488] shadow'
+                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      {slot.startTime}
+                    </button>
+                  );
+                })}
               </div>
+            </div>
 
-              <div>
-                <label className="block text-xs font-bold uppercase text-slate-500 mb-1">
-                  Symptoms / Reason for Visit
-                </label>
-                <input
-                  type="text"
-                  value={symptoms}
-                  onChange={(e) => setSymptoms(e.target.value)}
-                  placeholder="e.g. Routine checkup, headache..."
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300"
-                />
-              </div>
+            <div>
+              <label className="block text-xs font-bold uppercase text-slate-500 mb-1">
+                Symptoms or Reason for Visit
+              </label>
+              <textarea
+                rows={2}
+                value={symptomsOrReason}
+                onChange={(e) => setSymptomsOrReason(e.target.value)}
+                placeholder="Briefly describe your symptoms..."
+                className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm"
+              />
+            </div>
 
-              <button
-                type="submit"
-                disabled={bookingLoading || !selectedDoctor}
-                className="w-full bg-[#312E81] hover:bg-indigo-900 disabled:opacity-50 text-white font-bold py-3 rounded-xl shadow transition"
-              >
-                {bookingLoading ? 'Confirming Slot...' : 'Book Appointment Slot'}
-              </button>
-            </form>
-          </div>
+            <button
+              type="submit"
+              disabled={loading || !selectedSlot}
+              className="w-full bg-[#0D9488] hover:bg-teal-700 disabled:opacity-50 text-white font-bold py-3.5 rounded-xl shadow transition"
+            >
+              {loading ? 'Booking Slot...' : 'Confirm Appointment Slot'}
+            </button>
+          </form>
+        </div>
 
-          {/* Right Column: My Appointments & Queue Check-In */}
-          <div className="lg:col-span-6 bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-            <h2 className="text-lg font-bold text-[#1E293B] border-b pb-3">
-              2. My Appointments & Hospital Check-In
-            </h2>
+        {/* Column 2: My Appointments & One-Click Queue Check-In */}
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 space-y-4">
+          <h2 className="text-lg font-extrabold text-[#1E293B]">
+            2. My Appointments & Queue Check-In
+          </h2>
 
-            <div className="space-y-3 max-h-[460px] overflow-y-auto pr-1">
+          {myAppointments.length === 0 ? (
+            <p className="text-xs text-slate-400 py-8 text-center">
+              You have no booked appointments yet.
+            </p>
+          ) : (
+            <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
               {myAppointments.map((apt) => (
                 <div
                   key={apt._id}
-                  className="p-4 rounded-xl border border-slate-200 flex justify-between items-center bg-slate-50"
+                  className="p-4 rounded-2xl border border-slate-200 bg-slate-50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3"
                 >
-                  <div>
-                    <span className="text-xs font-bold text-[#312E81]">
-                      {apt.appointmentReference}
-                    </span>
-                    <h4 className="font-bold text-sm text-slate-800">
-                      {apt.doctorId?.fullName || 'Assigned Doctor'}
-                    </h4>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-extrabold text-[#312E81]">
+                        {apt.appointmentReference}
+                      </span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-100 text-teal-800">
+                        {apt.status}
+                      </span>
+                    </div>
+                    <p className="text-sm font-bold text-slate-800">
+                      {apt.doctorId?.fullName || 'Clinic Doctor'} • {apt.department}
+                    </p>
                     <p className="text-xs text-slate-500">
-                      {new Date(apt.appointmentDate).toLocaleDateString()} at{' '}
-                      {apt.timeSlot?.startTime} • {apt.department}
+                      Date: {new Date(apt.appointmentDate).toLocaleDateString()} | Time:{' '}
+                      <strong>
+                        {apt.timeSlot?.startTime} - {apt.timeSlot?.endTime}
+                      </strong>
                     </p>
                   </div>
 
-                  {apt.status === 'CONFIRMED' ? (
-                    <button
-                      onClick={() => handleCheckIn(apt.appointmentReference)}
-                      className="bg-[#0D9488] hover:bg-teal-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow transition"
-                    >
-                      Check In Now
-                    </button>
-                  ) : (
-                    <span
-                      className={`text-xs font-bold px-3 py-1 rounded-full ${
-                        apt.status === 'CHECKED_IN'
-                          ? 'bg-amber-100 text-amber-800'
-                          : apt.status === 'COMPLETED'
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : 'bg-slate-200 text-slate-700'
-                      }`}
-                    >
-                      {apt.status}
-                    </span>
+                  {apt.status === 'CONFIRMED' && (
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleCheckIn(apt.appointmentReference)}
+                        className="bg-[#10B981] hover:bg-emerald-600 text-slate-900 font-extrabold text-xs px-3.5 py-2 rounded-xl shadow transition"
+                      >
+                        Check In Now
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleCancelAppointment(apt._id)}
+                        className="bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs px-3 py-2 rounded-xl border border-red-200"
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   )}
                 </div>
               ))}
-
-              {myAppointments.length === 0 && (
-                <div className="text-center py-12 text-slate-400 text-sm">
-                  You have no scheduled appointments yet. Book a time slot on the left to get started.
-                </div>
-              )}
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

@@ -1,14 +1,14 @@
 import * as Yup from 'yup';
 
-// Matches standard Nigerian numbers (080..., 090..., 070..., 081..., or +234...)
-const phoneRegExp = /^(\+234|0)[789][01]\d{8}$/;
+// Flexible Nigerian & international phone validation (allows 080..., +234..., etc.)
+const phoneRegExp = /^(\+?234|0)?[789][01]\d{8}$/;
 
 export const loginSchema = Yup.object({
   email: Yup.string()
     .email('Please enter a valid email address')
     .required('Email address is required'),
   password: Yup.string()
-    .min(8, 'Password must be at least 8 characters')
+    .min(6, 'Password must be at least 6 characters')
     .required('Password is required'),
 });
 
@@ -35,6 +35,19 @@ export const registerPatientSchema = Yup.object({
     .oneOf(['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'])
     .required('Blood group is required'),
   isVulnerable: Yup.boolean(),
+});
+
+export const onboardDoctorSchema = Yup.object({
+  fullName: Yup.string().min(3, 'Full name required').required('Doctor full name is required'),
+  email: Yup.string().email('Invalid email').required('Email is required'),
+  phone: Yup.string().matches(phoneRegExp, 'Enter a valid Nigerian phone number').required('Phone is required'),
+  password: Yup.string().min(8, 'Min 8 characters').required('Temporary password is required'),
+  department: Yup.string()
+    .oneOf(['GENERAL_OPD', 'PEDIATRICS', 'CARDIOLOGY', 'OBGYN', 'ORTHOPEDICS', 'DENTAL'])
+    .required('Department is required'),
+  specialization: Yup.string().required('Specialization is required'),
+  consultationRoom: Yup.string().required('Consultation room is required'),
+  avgConsultationTimeMins: Yup.number().min(5).max(120).required('Avg consultation time is required'),
 });
 
 export const forgotPasswordSchema = Yup.object({

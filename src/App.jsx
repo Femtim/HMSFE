@@ -27,7 +27,7 @@ export default function App() {
           <Route path="/reset-password/:token" element={<ResetPasswordView />} />
           <Route path="/tv-board/:department" element={<LiveWaitingBoard />} />
 
-          {/* Patient Protected Route (With Navbar & Sidebar) */}
+          {/* Protected Role Portals wrapped in Hospital Navbar & Sidebar */}
           <Route
             path="/patient"
             element={
@@ -39,7 +39,6 @@ export default function App() {
             }
           />
 
-          {/* Doctor Protected Route (With Navbar & Sidebar) */}
           <Route
             path="/doctor"
             element={
@@ -51,7 +50,6 @@ export default function App() {
             }
           />
 
-          {/* Super Admin Protected Route (With Navbar & Sidebar) */}
           <Route
             path="/admin"
             element={
@@ -63,7 +61,7 @@ export default function App() {
             }
           />
 
-          {/* Catch-all Fallback */}
+          {/* Default Fallback */}
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>
