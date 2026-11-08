@@ -52,16 +52,15 @@ export default function LiveWaitingBoard() {
   const waitingTickets = tickets.filter((t) => t.status === 'WAITING');
 
   return (
-    <div className="min-h-screen bg-[#1E293B] text-white p-6 sm:p-10 font-sans flex flex-col justify-between">
-      <div className="space-y-8">
-        {/* Top TV Header */}
-        <header className="flex flex-wrap justify-between items-center gap-4 bg-slate-900/80 p-6 rounded-3xl border border-slate-700">
+    <div className="min-h-screen bg-slate-950 text-white p-6 sm:p-8 font-sans flex flex-col justify-between">
+      <div className="space-y-6">
+        <header className="flex flex-wrap justify-between items-center gap-4 bg-slate-900 p-5 rounded-lg border border-slate-800">
           <div>
-            <span className="text-xs font-extrabold uppercase tracking-widest text-[#10B981]">
-              Live Hospital Waiting Room Display
+            <span className="text-xs font-medium uppercase tracking-wider text-teal-400">
+              Outpatient Queue Monitor
             </span>
-            <h1 className="text-3xl font-black tracking-tight mt-1">
-              {normalizedDept.replace('_', ' ')} QUEUE
+            <h1 className="text-2xl font-bold tracking-tight mt-0.5">
+              {normalizedDept.replace('_', ' ')}
             </h1>
           </div>
 
@@ -69,7 +68,7 @@ export default function LiveWaitingBoard() {
             <select
               value={normalizedDept}
               onChange={(e) => navigate(`/tv-board/${e.target.value}`)}
-              className="bg-slate-800 text-white text-sm font-bold px-4 py-2.5 rounded-xl border border-slate-600"
+              className="bg-slate-800 text-white text-xs font-medium px-3 py-2 rounded border border-slate-700"
             >
               {DEPARTMENTS.map((d) => (
                 <option key={d} value={d}>
@@ -78,45 +77,43 @@ export default function LiveWaitingBoard() {
               ))}
             </select>
             <div className="text-right">
-              <span className="text-xs text-slate-400 block">Updated</span>
-              <span className="text-sm font-mono font-bold text-[#10B981]">
+              <span className="text-[11px] text-slate-400 block">Last Sync</span>
+              <span className="text-xs font-mono text-slate-200">
                 {lastUpdated.toLocaleTimeString()}
               </span>
             </div>
           </div>
         </header>
 
-        {/* Main TV Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Now Serving Column */}
-          <div className="bg-gradient-to-br from-[#0D9488] to-teal-900 p-8 rounded-3xl shadow-2xl space-y-6">
-            <h2 className="text-xl font-extrabold uppercase tracking-wider text-teal-100">
-              🔊 Now Calling / In Consultation
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-slate-900 p-6 rounded-lg border border-slate-800 space-y-4">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-teal-400 border-b border-slate-800 pb-3">
+              Now Calling
             </h2>
 
             {calledTickets.length === 0 ? (
-              <div className="py-16 text-center text-teal-200/70 text-lg font-semibold">
-                Please wait. The next ticket will be called shortly.
+              <div className="py-16 text-center text-slate-500 text-sm">
+                No active call at this moment. Please wait for your ticket number.
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {calledTickets.map((t) => (
                   <div
                     key={t._id || t.ticketNumber}
-                    className="bg-white text-slate-900 p-6 rounded-2xl shadow-xl flex justify-between items-center animate-pulse"
+                    className="bg-teal-950/60 border border-teal-700/60 p-5 rounded-md flex justify-between items-center"
                   >
                     <div>
-                      <span className="text-xs font-extrabold uppercase text-[#0D9488] block">
-                        Proceed Immediately To
+                      <span className="text-xs font-medium uppercase text-teal-400 block">
+                        Proceed To
                       </span>
-                      <span className="text-2xl font-black text-[#312E81]">
+                      <span className="text-2xl font-bold text-white">
                         {t.consultationRoom}
                       </span>
-                      <span className="text-xs text-slate-500 block mt-0.5">
-                        {t.doctorId?.fullName || 'Attending Physician'}
+                      <span className="text-xs text-slate-400 block mt-0.5">
+                        {t.doctorId?.fullName || 'Clinician'}
                       </span>
                     </div>
-                    <span className="text-5xl font-black tracking-tighter text-[#1E293B]">
+                    <span className="text-4xl font-mono font-bold text-teal-300">
                       {t.ticketNumber}
                     </span>
                   </div>
@@ -125,27 +122,26 @@ export default function LiveWaitingBoard() {
             )}
           </div>
 
-          {/* Upcoming Waiting Tickets Column */}
-          <div className="bg-slate-900/70 p-8 rounded-3xl border border-slate-700 space-y-6">
-            <h2 className="text-xl font-extrabold uppercase tracking-wider text-slate-300">
-              ⏳ Waiting in Line ({waitingTickets.length})
+          <div className="bg-slate-900 p-6 rounded-lg border border-slate-800 space-y-4">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-400 border-b border-slate-800 pb-3">
+              Waiting Queue ({waitingTickets.length})
             </h2>
 
             {waitingTickets.length === 0 ? (
-              <div className="py-16 text-center text-slate-500 text-base">
-                No waiting tickets in this department.
+              <div className="py-16 text-center text-slate-500 text-sm">
+                No waiting tickets in this unit.
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {waitingTickets.map((t) => (
                   <div
                     key={t._id || t.ticketNumber}
-                    className="p-4 rounded-2xl bg-slate-800 border border-slate-700 text-center space-y-1"
+                    className="p-3.5 rounded-md bg-slate-950 border border-slate-800 text-center space-y-1"
                   >
-                    <span className="text-2xl font-black text-white block">
+                    <span className="text-xl font-mono font-bold text-white block">
                       {t.ticketNumber}
                     </span>
-                    <span className="text-[11px] font-bold text-[#10B981] block">
+                    <span className="text-xs text-slate-400 block">
                       {t.consultationRoom}
                     </span>
                   </div>
@@ -156,8 +152,8 @@ export default function LiveWaitingBoard() {
         </div>
       </div>
 
-      <footer className="text-center text-xs text-slate-500 pt-8">
-        HAQMS Intelligent Queue Management System • Keep your Hospital Card ready when called
+      <footer className="text-center text-xs text-slate-500 pt-6 border-t border-slate-900">
+        Please have your Hospital Card ready when approaching the consultation room.
       </footer>
     </div>
   );

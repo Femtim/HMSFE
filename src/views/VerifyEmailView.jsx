@@ -6,7 +6,7 @@ export default function VerifyEmailView() {
   const { token } = useParams();
   const { verifyEmail } = useAuth();
 
-  const [status, setStatus] = useState('verifying'); // 'verifying' | 'success' | 'error'
+  const [status, setStatus] = useState('verifying');
   const [message, setMessage] = useState('Verifying your email address...');
   const hasCalled = useRef(false);
 
@@ -18,7 +18,7 @@ export default function VerifyEmailView() {
       try {
         const res = await verifyEmail(token);
         setStatus('success');
-        setMessage(res.message || 'Your email has been verified! You may now sign in.');
+        setMessage(res.message || 'Your email has been verified. You may now sign in.');
       } catch (err) {
         setStatus('error');
         setMessage(
@@ -37,46 +37,47 @@ export default function VerifyEmailView() {
   }, [token, verifyEmail]);
 
   return (
-    <div className="min-h-screen bg-[#1E293B] flex flex-col justify-center items-center p-6 font-sans">
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden text-center p-8 space-y-6">
+    <div className="min-h-screen bg-slate-100 flex flex-col justify-center items-center p-4 font-sans">
+      <div className="w-full max-w-md bg-white rounded-md shadow-sm border border-slate-200 text-center p-6 space-y-4">
         {status === 'verifying' && (
           <>
-            <div className="w-16 h-16 mx-auto rounded-full bg-teal-50 text-[#0D9488] flex items-center justify-center text-2xl font-bold animate-pulse">
-              ⏳
-            </div>
-            <h1 className="text-xl font-extrabold text-[#1E293B]">Verifying Email...</h1>
+            <h1 className="text-base font-semibold text-slate-900">Verifying Email</h1>
             <p className="text-xs text-slate-500">{message}</p>
           </>
         )}
 
         {status === 'success' && (
           <>
-            <div className="w-16 h-16 mx-auto rounded-full bg-emerald-100 text-[#10B981] flex items-center justify-center text-3xl font-extrabold">
-              ✓
+            <div className="w-10 h-10 mx-auto rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M5 13l4 4L19 7" />
+              </svg>
             </div>
-            <h1 className="text-2xl font-extrabold text-[#1E293B]">Email Verified!</h1>
-            <p className="text-sm text-slate-600">{message}</p>
+            <h1 className="text-base font-semibold text-slate-900">Email Verified</h1>
+            <p className="text-xs text-slate-600">{message}</p>
             <Link
               to="/login"
-              className="block w-full bg-[#0D9488] hover:bg-teal-700 text-white font-bold py-3.5 rounded-xl shadow transition"
+              className="block w-full bg-teal-600 hover:bg-teal-700 text-white font-medium py-2 rounded text-xs transition"
             >
-              Proceed to Login
+              Continue to Sign In
             </Link>
           </>
         )}
 
         {status === 'error' && (
           <>
-            <div className="w-16 h-16 mx-auto rounded-full bg-red-100 text-red-600 flex items-center justify-center text-3xl font-extrabold">
-              ✕
+            <div className="w-10 h-10 mx-auto rounded-full bg-red-50 text-red-600 flex items-center justify-center">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </div>
-            <h1 className="text-2xl font-extrabold text-[#1E293B]">Verification Failed</h1>
-            <p className="text-sm text-red-600">{message}</p>
+            <h1 className="text-base font-semibold text-slate-900">Verification Failed</h1>
+            <p className="text-xs text-red-600">{message}</p>
             <Link
               to="/login"
-              className="block w-full bg-[#312E81] hover:bg-indigo-900 text-white font-bold py-3.5 rounded-xl shadow transition"
+              className="block w-full bg-slate-900 hover:bg-slate-800 text-white font-medium py-2 rounded text-xs transition"
             >
-              Back to Login
+              Back to Sign In
             </Link>
           </>
         )}

@@ -17,12 +17,12 @@ export default function ForgotPasswordView() {
         const res = await forgotPassword(values.email);
         setStatus({
           type: 'success',
-          text: res.message || 'Password reset link sent! Check your email inbox.',
+          text: res.message || 'Password reset link sent. Please check your inbox.',
         });
       } catch (err) {
         setStatus({
           type: 'error',
-          text: err.response?.data?.message || 'Could not send reset email.',
+          text: err.response?.data?.message || 'Could not process password reset request.',
         });
       } finally {
         setSubmitting(false);
@@ -31,19 +31,19 @@ export default function ForgotPasswordView() {
   });
 
   return (
-    <div className="min-h-screen bg-[#1E293B] flex flex-col justify-center items-center p-6 font-sans">
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden">
-        <div className="bg-[#312E81] p-7 text-center text-white">
-          <h1 className="text-2xl font-extrabold">Forgot Your Password?</h1>
-          <p className="text-indigo-200 text-xs mt-1">
-            Enter your registered email to receive a password reset link
+    <div className="min-h-screen bg-slate-100 flex flex-col justify-center items-center p-4 font-sans">
+      <div className="w-full max-w-md bg-white rounded-md shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-slate-900 px-6 py-5 text-white border-b border-slate-800">
+          <h1 className="text-base font-semibold">Reset Password</h1>
+          <p className="text-slate-400 text-xs mt-0.5">
+            Enter your registered email address to receive a reset link
           </p>
         </div>
 
-        <form onSubmit={formik.handleSubmit} noValidate className="p-8 space-y-5">
+        <form onSubmit={formik.handleSubmit} noValidate className="p-6 space-y-4">
           {status.text && (
             <div
-              className={`p-3.5 rounded-xl text-xs font-semibold ${
+              className={`p-3 rounded text-xs font-medium break-all ${
                 status.type === 'success'
                   ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
                   : 'bg-red-50 text-red-700 border border-red-200'
@@ -54,39 +54,38 @@ export default function ForgotPasswordView() {
           )}
 
           <div>
-            <label className="block text-xs font-bold uppercase text-slate-500 mb-1.5">
-              Registered Email Address
+            <label className="block text-xs font-medium text-slate-700 mb-1">
+              Email Address
             </label>
             <input
               type="email"
               name="email"
-              placeholder="name@hospital.ng"
+              placeholder="name@domain.com"
               value={formik.values.email}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              className={`w-full px-4 py-3 rounded-xl border text-sm outline-none focus:ring-2 ${
+              className={`w-full px-3 py-2 rounded border text-sm outline-none ${
                 formik.touched.email && formik.errors.email
-                  ? 'border-red-400 focus:ring-red-400'
-                  : 'border-slate-300 focus:ring-[#0D9488]'
+                  ? 'border-red-400'
+                  : 'border-slate-300 focus:border-teal-600'
               }`}
             />
             {formik.touched.email && formik.errors.email && (
-              <p className="text-[11px] font-semibold text-red-600 mt-1">{formik.errors.email}</p>
+              <p className="text-xs text-red-600 mt-1">{formik.errors.email}</p>
             )}
           </div>
 
           <button
             type="submit"
             disabled={formik.isSubmitting}
-            className="w-full bg-[#0D9488] hover:bg-teal-700 disabled:opacity-50 text-white font-bold py-3.5 rounded-xl shadow transition"
+            className="w-full bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white font-medium py-2.5 rounded text-sm transition"
           >
-            {formik.isSubmitting ? 'Sending Reset Link...' : 'Send Reset Link'}
+            {formik.isSubmitting ? 'Sending...' : 'Send Reset Link'}
           </button>
 
-          <p className="text-center text-xs text-slate-500 pt-2">
-            Remembered your password?{' '}
-            <Link to="/login" className="text-[#312E81] font-bold hover:underline">
-              Back to Sign In
+          <p className="text-center text-xs text-slate-600 pt-1">
+            <Link to="/login" className="text-teal-600 font-medium hover:underline">
+              Return to Sign In
             </Link>
           </p>
         </form>
