@@ -1,45 +1,44 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { useFormik } from "formik";
-import { useAuth } from "../context/AuthContext";
-import { loginSchema } from "../utils/validationSchemas";
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useFormik } from 'formik';
+import { useAuth } from '../context/AuthContext';
+import { loginSchema } from '../utils/validationSchemas';
 
 export default function LoginView() {
   const { login, resendVerification, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
-  const [serverError, setServerError] = useState("");
-  const [unverifiedEmail, setUnverifiedEmail] = useState("");
-  const [resendStatus, setResendStatus] = useState("");
+  const [serverError, setServerError] = useState('');
+  const [unverifiedEmail, setUnverifiedEmail] = useState('');
+  const [resendStatus, setResendStatus] = useState('');
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      if (user.role === "PATIENT") navigate("/patient", { replace: true });
-      else if (user.role === "DOCTOR") navigate("/doctor", { replace: true });
-      else if (user.role === "SUPER_ADMIN")
-        navigate("/admin", { replace: true });
+      if (user.role === 'PATIENT') navigate('/patient', { replace: true });
+      else if (user.role === 'DOCTOR') navigate('/doctor', { replace: true });
+      else if (user.role === 'SUPER_ADMIN') navigate('/admin', { replace: true });
     }
   }, [isAuthenticated, user, navigate]);
 
   const formik = useFormik({
     initialValues: {
-      email: "",
-      password: "",
+      email: '',
+      password: '',
     },
     validationSchema: loginSchema,
     onSubmit: async (values, { setSubmitting }) => {
-      setServerError("");
-      setResendStatus("");
-      setUnverifiedEmail("");
+      setServerError('');
+      setResendStatus('');
+      setUnverifiedEmail('');
 
       try {
         const loggedInUser = await login(values.email, values.password);
-        if (loggedInUser.role === "PATIENT") navigate("/patient");
-        else if (loggedInUser.role === "DOCTOR") navigate("/doctor");
-        else if (loggedInUser.role === "SUPER_ADMIN") navigate("/admin");
+        if (loggedInUser.role === 'PATIENT') navigate('/patient');
+        else if (loggedInUser.role === 'DOCTOR') navigate('/doctor');
+        else if (loggedInUser.role === 'SUPER_ADMIN') navigate('/admin');
       } catch (err) {
         const data = err.response?.data;
-        setServerError(data?.message || "Invalid email or password.");
+        setServerError(data?.message || 'Invalid email or password.');
         if (data?.requiresVerification) {
           setUnverifiedEmail(data.email || values.email);
         }
@@ -51,47 +50,37 @@ export default function LoginView() {
 
   const handleResendEmail = async () => {
     if (!unverifiedEmail) return;
-    setResendStatus("Sending new verification email...");
+    setResendStatus('Sending verification email...');
     try {
       const res = await resendVerification(unverifiedEmail);
-      setResendStatus(
-        res.message || "Verification link sent! Please check your inbox.",
-      );
+      setResendStatus(res.message || 'Verification link sent. Please check your inbox.');
     } catch (err) {
-      setResendStatus(
-        err.response?.data?.message || "Failed to resend verification email.",
-      );
+      setResendStatus(err.response?.data?.message || 'Failed to resend verification email.');
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#1E293B] flex flex-col justify-center items-center p-6 font-sans">
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-700/20">
-        <div className="bg-[#312E81] p-8 text-center text-white">
-          <span className="inline-block bg-[#10B981] text-slate-900 font-bold text-xs px-3 py-1 rounded-full uppercase tracking-widest mb-3">
-            Intelligent Queue System
-          </span>
-          <h1 className="text-2xl font-extrabold tracking-tight">
-            Hospital Portal Login
-          </h1>
-          <p className="text-indigo-200 text-xs mt-1">
-            Role-Based Access (Patient • Doctor • Super Admin)
+    <div className="min-h-screen bg-slate-100 flex flex-col justify-center items-center p-4 font-sans">
+      <div className="w-full max-w-md bg-white rounded-md shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-slate-900 px-6 py-5 text-white border-b border-slate-800">
+          <p className="text-xs font-medium text-teal-400 uppercase tracking-wider">
+            HAQMS Portal
+          </p>
+          <h1 className="text-lg font-semibold mt-0.5">Sign in to your account</h1>
+          <p className="text-slate-400 text-xs mt-0.5">
+            Access outpatient appointments, clinical queues, and administrative tools
           </p>
         </div>
 
-        <form
-          onSubmit={formik.handleSubmit}
-          noValidate
-          className="p-8 space-y-5"
-        >
+        <form onSubmit={formik.handleSubmit} noValidate className="p-6 space-y-4">
           {serverError && (
-            <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 text-xs font-medium rounded-xl space-y-2">
-              <p>{serverError}</p>
+            <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded space-y-2">
+              <p className="break-all">{serverError}</p>
               {unverifiedEmail && (
                 <button
                   type="button"
                   onClick={handleResendEmail}
-                  className="inline-block bg-red-600 hover:bg-red-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition"
+                  className="inline-block bg-red-600 hover:bg-red-700 text-white font-medium px-2.5 py-1 rounded text-xs transition"
                 >
                   Resend Verification Email
                 </button>
@@ -100,62 +89,60 @@ export default function LoginView() {
           )}
 
           {resendStatus && (
-            <div className="p-3 bg-teal-50 border border-teal-200 text-teal-800 text-xs font-semibold rounded-xl">
+            <div className="p-3 bg-teal-50 border border-teal-200 text-teal-800 text-xs rounded break-all">
               {resendStatus}
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-bold uppercase text-slate-500 mb-1.5">
+            <label className="block text-xs font-medium text-slate-700 mb-1">
               Email Address
             </label>
             <input
               type="email"
               name="email"
-              placeholder="name@hospital.ng"
+              placeholder="name@domain.com"
               value={formik.values.email}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              className={`w-full px-4 py-3 rounded-xl border text-slate-800 text-sm focus:outline-none focus:ring-2 ${
+              className={`w-full px-3 py-2 rounded border text-slate-900 text-sm outline-none ${
                 formik.touched.email && formik.errors.email
-                  ? "border-red-400 focus:ring-red-400"
-                  : "border-slate-300 focus:ring-[#0D9488]"
+                  ? 'border-red-400'
+                  : 'border-slate-300 focus:border-teal-600'
               }`}
             />
             {formik.touched.email && formik.errors.email && (
-              <p className="text-[11px] font-semibold text-red-600 mt-1">
-                {formik.errors.email}
-              </p>
+              <p className="text-xs text-red-600 mt-1">{formik.errors.email}</p>
             )}
           </div>
 
           <div>
-            <div className="flex justify-between items-center mb-1.5">
-              <label className="block text-xs font-bold uppercase text-slate-500">
+            <div className="flex justify-between items-center mb-1">
+              <label className="block text-xs font-medium text-slate-700">
                 Password
               </label>
               <Link
                 to="/forgot-password"
-                className="text-xs font-bold text-[#0D9488] hover:underline"
+                className="text-xs font-medium text-teal-600 hover:text-teal-700"
               >
-                Forgot Password?
+                Forgot password?
               </Link>
             </div>
             <input
               type="password"
               name="password"
-              placeholder="••••••••"
+              placeholder="Enter password"
               value={formik.values.password}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              className={`w-full px-4 py-3 rounded-xl border text-slate-800 text-sm focus:outline-none focus:ring-2 ${
+              className={`w-full px-3 py-2 rounded border text-slate-900 text-sm outline-none ${
                 formik.touched.password && formik.errors.password
-                  ? "border-red-400 focus:ring-red-400"
-                  : "border-slate-300 focus:ring-[#0D9488]"
+                  ? 'border-red-400'
+                  : 'border-slate-300 focus:border-teal-600'
               }`}
             />
             {formik.touched.password && formik.errors.password && (
-              <p className="text-[11px] font-semibold text-red-600 mt-1">
+              <p className="text-xs text-red-600 mt-1">
                 {formik.errors.password}
               </p>
             )}
@@ -164,30 +151,27 @@ export default function LoginView() {
           <button
             type="submit"
             disabled={formik.isSubmitting}
-            className="w-full bg-[#0D9488] hover:bg-teal-700 disabled:opacity-50 text-white font-bold py-3.5 rounded-xl shadow-md transition"
+            className="w-full bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white font-medium py-2.5 rounded text-sm transition"
           >
-            {formik.isSubmitting ? "Signing In..." : "Sign In"}
+            {formik.isSubmitting ? 'Signing in...' : 'Sign In'}
           </button>
 
-          <p className="text-center text-xs text-slate-500 pt-2">
-            New Patient?{" "}
-            <Link
-              to="/register"
-              className="text-[#312E81] font-bold hover:underline"
-            >
-              Create your acoount here
+          <p className="text-center text-xs text-slate-600 pt-1">
+            New patient?{' '}
+            <Link to="/register" className="text-teal-600 font-medium hover:underline">
+              Register for a hospital card
             </Link>
           </p>
         </form>
 
-        <div className="bg-slate-50 px-8 py-4 border-t border-slate-200 flex justify-between items-center text-xs">
-          <span className="text-slate-500">Waiting Area Display:</span>
+        <div className="bg-slate-50 px-6 py-3 border-t border-slate-200 flex justify-between items-center text-xs">
+          <span className="text-slate-500">Public Queue Monitor</span>
           <Link
             to="/tv-board/GENERAL_OPD"
             target="_blank"
-            className="text-[#0D9488] font-bold hover:underline"
+            className="text-slate-700 font-medium hover:text-teal-600"
           >
-            Open Live TV Board ↗
+            View Live Board
           </Link>
         </div>
       </div>

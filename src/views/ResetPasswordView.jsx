@@ -20,7 +20,7 @@ export default function ResetPasswordView() {
       setStatus({ type: '', text: '' });
       try {
         const res = await resetPassword(token, values.newPassword);
-        setStatus({ type: 'success', text: res.message || 'Password reset successful!' });
+        setStatus({ type: 'success', text: res.message || 'Password updated.' });
         setTimeout(() => navigate('/login'), 2000);
       } catch (err) {
         setStatus({
@@ -34,19 +34,19 @@ export default function ResetPasswordView() {
   });
 
   return (
-    <div className="min-h-screen bg-[#1E293B] flex flex-col justify-center items-center p-6 font-sans">
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden">
-        <div className="bg-[#0D9488] p-7 text-center text-white">
-          <h1 className="text-2xl font-extrabold">Set New Password</h1>
-          <p className="text-teal-100 text-xs mt-1">
-            Choose a strong password for your hospital portal account
+    <div className="min-h-screen bg-slate-100 flex flex-col justify-center items-center p-4 font-sans">
+      <div className="w-full max-w-md bg-white rounded-md shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-slate-900 px-6 py-5 text-white border-b border-slate-800">
+          <h1 className="text-base font-semibold">Set New Password</h1>
+          <p className="text-slate-400 text-xs mt-0.5">
+            Enter a new password for your account
           </p>
         </div>
 
-        <form onSubmit={formik.handleSubmit} noValidate className="p-8 space-y-4">
+        <form onSubmit={formik.handleSubmit} noValidate className="p-6 space-y-4">
           {status.text && (
             <div
-              className={`p-3.5 rounded-xl text-xs font-semibold ${
+              className={`p-3 rounded text-xs font-medium ${
                 status.type === 'success'
                   ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
                   : 'bg-red-50 text-red-700 border border-red-200'
@@ -57,31 +57,31 @@ export default function ResetPasswordView() {
           )}
 
           <div>
-            <label className="block text-xs font-bold uppercase text-slate-500 mb-1">
+            <label className="block text-xs font-medium text-slate-700 mb-1">
               New Password
             </label>
             <input
               type="password"
               name="newPassword"
-              placeholder="Min. 8 characters"
+              placeholder="Minimum 8 characters"
               value={formik.values.newPassword}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              className={`w-full px-4 py-3 rounded-xl border text-sm outline-none focus:ring-2 ${
+              className={`w-full px-3 py-2 rounded border text-sm outline-none ${
                 formik.touched.newPassword && formik.errors.newPassword
-                  ? 'border-red-400 focus:ring-red-400'
-                  : 'border-slate-300 focus:ring-[#0D9488]'
+                  ? 'border-red-400'
+                  : 'border-slate-300 focus:border-teal-600'
               }`}
             />
             {formik.touched.newPassword && formik.errors.newPassword && (
-              <p className="text-[11px] font-semibold text-red-600 mt-1">
+              <p className="text-xs text-red-600 mt-1">
                 {formik.errors.newPassword}
               </p>
             )}
           </div>
 
           <div>
-            <label className="block text-xs font-bold uppercase text-slate-500 mb-1">
+            <label className="block text-xs font-medium text-slate-700 mb-1">
               Confirm New Password
             </label>
             <input
@@ -91,14 +91,14 @@ export default function ResetPasswordView() {
               value={formik.values.confirmPassword}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              className={`w-full px-4 py-3 rounded-xl border text-sm outline-none focus:ring-2 ${
+              className={`w-full px-3 py-2 rounded border text-sm outline-none ${
                 formik.touched.confirmPassword && formik.errors.confirmPassword
-                  ? 'border-red-400 focus:ring-red-400'
-                  : 'border-slate-300 focus:ring-[#0D9488]'
+                  ? 'border-red-400'
+                  : 'border-slate-300 focus:border-teal-600'
               }`}
             />
             {formik.touched.confirmPassword && formik.errors.confirmPassword && (
-              <p className="text-[11px] font-semibold text-red-600 mt-1">
+              <p className="text-xs text-red-600 mt-1">
                 {formik.errors.confirmPassword}
               </p>
             )}
@@ -107,14 +107,14 @@ export default function ResetPasswordView() {
           <button
             type="submit"
             disabled={formik.isSubmitting}
-            className="w-full bg-[#312E81] hover:bg-indigo-900 disabled:opacity-50 text-white font-bold py-3.5 rounded-xl shadow transition"
+            className="w-full bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white font-medium py-2.5 rounded text-sm transition"
           >
-            {formik.isSubmitting ? 'Updating Password...' : 'Save New Password'}
+            {formik.isSubmitting ? 'Saving...' : 'Save Password'}
           </button>
 
-          <p className="text-center text-xs text-slate-500 pt-2">
-            <Link to="/login" className="text-[#0D9488] font-bold hover:underline">
-              Back to Login
+          <p className="text-center text-xs text-slate-600 pt-1">
+            <Link to="/login" className="text-teal-600 font-medium hover:underline">
+              Back to Sign In
             </Link>
           </p>
         </form>
