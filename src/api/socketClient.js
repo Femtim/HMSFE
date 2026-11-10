@@ -1,11 +1,11 @@
 import { io } from 'socket.io-client';
 
 const rawSocketUrl =
-  import.meta.env.VITE_SOCKET_URL ;
+  import.meta.env.VITE_SOCKET_URL || 'https://hmsbe-60h6.onrender.com';
 
 const SOCKET_URL = rawSocketUrl.replace(/\/api\/v1\/?$/, '').replace(/\/$/, '');
 
-const socket = io(SOCKET_URL, {
+export const socket = io(SOCKET_URL, {
   autoConnect: true,
   reconnection: true,
   reconnectionAttempts: 10,

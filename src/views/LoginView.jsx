@@ -65,7 +65,7 @@ export default function LoginView() {
       <div className="w-full max-w-md bg-white rounded-md shadow-sm border border-slate-200 overflow-hidden">
         <div className="bg-slate-900 px-6 py-5 text-white border-b border-slate-800">
           <p className="text-xs font-medium text-teal-400 uppercase tracking-wider">
-            GENERAL HOSPITAL
+            HAQMS Portal
           </p>
           <h1 className="text-lg font-semibold mt-0.5">Sign in to your account</h1>
           <p className="text-slate-400 text-xs mt-0.5">
@@ -102,7 +102,7 @@ export default function LoginView() {
             <input
               type="email"
               name="email"
-              placeholder="name@gmail.com"
+              placeholder="name@domain.com"
               value={formik.values.email}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
@@ -169,7 +169,7 @@ export default function LoginView() {
           <p className="text-center text-xs text-slate-600 pt-1">
             New patient?{' '}
             <Link to="/register" className="text-teal-600 font-medium hover:underline">
-              Register an account
+              Register for a hospital card
             </Link>
           </p>
         </form>

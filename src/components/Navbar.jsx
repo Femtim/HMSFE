@@ -31,10 +31,10 @@ export default function Navbar({
 
         <div className="flex items-center gap-2.5">
           <div className="w-6 h-6 rounded bg-teal-700 flex items-center justify-center font-bold text-xs tracking-wider text-white">
-            GH
+            HQ
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="font-semibold text-sm tracking-tight text-white">GENERAL HOSPITAL</span>
+            <span className="font-semibold text-sm tracking-tight text-white">HAQMS</span>
             <span className="hidden xl:inline-block text-xs text-slate-400 font-normal">
               Hospital Queue & Appointment System
             </span>

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const rawBaseUrl =
-  import.meta.env.VITE_API_BASE_URL ;
+  import.meta.env.VITE_API_BASE_URL || 'https://hmsbe-60h6.onrender.com/api/v1';
 
 const normalizedBaseUrl = rawBaseUrl.replace(/\/$/, '').endsWith('/api/v1')
   ? rawBaseUrl.replace(/\/$/, '')

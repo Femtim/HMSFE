@@ -188,7 +188,6 @@ export default function PatientPortal() {
         )}
       </div>
 
-      {/* Renders active nested route (/patient/dashboard, /patient/appointment, etc.) */}
       <Outlet
         context={{
           user,
