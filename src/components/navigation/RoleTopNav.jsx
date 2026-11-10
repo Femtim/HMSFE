@@ -1,11 +1,13 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { PATIENT_NAV_ITEMS } from './navConfig';
+import { ROLE_NAV_MAP, PATIENT_NAV_ITEMS } from './navConfig';
 
-export default function PatientTopNav() {
+export default function RoleTopNav({ role }) {
+  const navItems = ROLE_NAV_MAP[role] || PATIENT_NAV_ITEMS;
+
   return (
-    <nav className="hidden lg:flex items-center gap-1" aria-label="Patient Navigation">
-      {PATIENT_NAV_ITEMS.map((item) => (
+    <nav className="hidden lg:flex items-center gap-1" aria-label="Workspace Navigation">
+      {navItems.map((item) => (
         <NavLink
           key={item.id}
           to={item.path}

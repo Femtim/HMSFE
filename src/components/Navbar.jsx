@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import PatientTopNav from './navigation/PatientTopNav';
+import RoleTopNav from './navigation/RoleTopNav';
 import TvMonitorControl from './navigation/TvMonitorControl';
 
 export default function Navbar({
@@ -16,7 +16,7 @@ export default function Navbar({
   const isPatient = user?.role === 'PATIENT';
 
   return (
-    <header className="sticky top-0 z-30 bg-slate-900 text-slate-100 border-b border-slate-800 px-6 lg:px-8 h-14 py-4 flex items-center justify-between">
+    <header className="sticky top-0 z-30 bg-slate-900 text-slate-100 border-b border-slate-800 px-4 lg:px-6 h-14 flex items-center justify-between">
       <div className="flex items-center gap-3">
         <button
           type="button"
@@ -42,7 +42,7 @@ export default function Navbar({
         </div>
       </div>
 
-      {/* {isPatient && <PatientTopNav />} */}
+      <RoleTopNav role={user?.role} />
 
       <div className="flex items-center gap-3">
         <TvMonitorControl

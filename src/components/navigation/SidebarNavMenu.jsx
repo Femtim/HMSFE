@@ -1,16 +1,9 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { PATIENT_NAV_ITEMS, STAFF_NAV_ITEMS } from './navConfig';
+import { ROLE_NAV_MAP, PATIENT_NAV_ITEMS } from './navConfig';
 
-export default function SidebarNavMenu({
-  role,
-  selectedNavSection,
-  setSelectedNavSection,
-  onOpenInfoModal,
-  onCloseMobileSidebar,
-}) {
-  const isPatient = role === 'PATIENT';
-  const staffItems = STAFF_NAV_ITEMS[role] || [];
+export default function SidebarNavMenu({ role, onCloseMobileSidebar }) {
+  const navItems = ROLE_NAV_MAP[role] || PATIENT_NAV_ITEMS;
 
   return (
     <div className="space-y-1">
@@ -18,48 +11,24 @@ export default function SidebarNavMenu({
         Navigation
       </p>
 
-      {isPatient
-        ? PATIENT_NAV_ITEMS.map((item) => (
-            <NavLink
-              key={item.id}
-              to={item.path}
-              onClick={() => {
-                if (onCloseMobileSidebar) onCloseMobileSidebar();
-              }}
-              className={({ isActive }) =>
-                `block w-full text-left px-3 py-2 rounded text-xs font-medium transition ${
-                  isActive
-                    ? 'bg-teal-700 text-white'
-                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                }`
-              }
-            >
-              {item.label}
-            </NavLink>
-          ))
-        : staffItems.map((item) => {
-            const isSelected = selectedNavSection === item.id;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => {
-                  setSelectedNavSection(item.id);
-                  if (item.id !== 'dashboard') {
-                    onOpenInfoModal();
-                  }
-                  if (onCloseMobileSidebar) onCloseMobileSidebar();
-                }}
-                className={`w-full text-left px-3 py-2 rounded text-xs font-medium transition ${
-                  isSelected
-                    ? 'bg-teal-700 text-white'
-                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                }`}
-              >
-                {item.label}
-              </button>
-            );
-          })}
+      {navItems.map((item) => (
+        <NavLink
+          key={item.id}
+          to={item.path}
+          onClick={() => {
+            if (onCloseMobileSidebar) onCloseMobileSidebar();
+          }}
+          className={({ isActive }) =>
+            `block w-full text-left px-3 py-2 rounded text-xs font-medium transition ${
+              isActive
+                ? 'bg-teal-700 text-white'
+                : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+            }`
+          }
+        >
+          {item.label}
+        </NavLink>
+      ))}
     </div>
   );
 }

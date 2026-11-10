@@ -40,15 +40,20 @@ export const PATIENT_NAV_ITEMS = [
   { id: 'profile', label: 'Profile', path: '/patient/profile' },
 ];
 
-export const STAFF_NAV_ITEMS = {
-  DOCTOR: [
-    { id: 'dashboard', label: 'Consultation Desk' },
-    { id: 'triage', label: 'Triage Protocol' },
-    { id: 'schedule', label: 'Shift & Room Assignment' },
-  ],
-  SUPER_ADMIN: [
-    { id: 'dashboard', label: 'Staff & Operations' },
-    { id: 'analytics', label: 'Department Metrics' },
-    { id: 'directory', label: 'Clinician Directory' },
-  ],
+export const DOCTOR_NAV_ITEMS = [
+  { id: 'desk', label: 'Consultation Desk', path: '/doctor/desk' },
+  { id: 'triage', label: 'Triage Protocol', path: '/doctor/triage' },
+  { id: 'schedule', label: 'Shift & Room Assignment', path: '/doctor/schedule' },
+];
+
+export const ADMIN_NAV_ITEMS = [
+  { id: 'operations', label: 'Staff & Operations', path: '/admin/operations' },
+  { id: 'analytics', label: 'Department Metrics', path: '/admin/analytics' },
+  { id: 'directory', label: 'Clinician Directory', path: '/admin/directory' },
+];
+
+export const ROLE_NAV_MAP = {
+  PATIENT: PATIENT_NAV_ITEMS,
+  DOCTOR: DOCTOR_NAV_ITEMS,
+  SUPER_ADMIN: ADMIN_NAV_ITEMS,
 };

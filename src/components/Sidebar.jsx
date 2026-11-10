@@ -9,9 +9,6 @@ export default function Sidebar({
   setSidebarOpen,
   tvDepartment,
   setTvDepartment,
-  selectedNavSection,
-  setSelectedNavSection,
-  onOpenInfoModal,
   onOpenSettingsModal,
 }) {
   const { user, logout } = useAuth();
@@ -35,7 +32,7 @@ export default function Sidebar({
           sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
-        <div className="p-4 mt-14 lg:mt-4 space-y-6 overflow-y-auto">
+        <div className="p-4 space-y-6 overflow-y-auto">
           <div className="bg-slate-800/80 p-3.5 rounded border border-slate-700/80 space-y-2">
             <div className="flex justify-between items-center">
               <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-teal-950 text-teal-300 border border-teal-800/60">
@@ -85,9 +82,6 @@ export default function Sidebar({
 
           <SidebarNavMenu
             role={user?.role}
-            selectedNavSection={selectedNavSection}
-            setSelectedNavSection={setSelectedNavSection}
-            onOpenInfoModal={onOpenInfoModal}
             onCloseMobileSidebar={() => setSidebarOpen(false)}
           />
 
