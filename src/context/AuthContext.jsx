@@ -51,6 +51,15 @@ export const AuthProvider = ({ children }) => {
     return response.data;
   };
 
+  const updateProfile = async (profilePayload) => {
+    const response = await axiosClient.patch('/auth/update-profile', profilePayload);
+    const updatedUser = response.data.data;
+
+    localStorage.setItem('hospital_user', JSON.stringify(updatedUser));
+    setUser(updatedUser);
+    return response.data;
+  };
+
   const forgotPassword = async (email) => {
     const response = await axiosClient.post('/auth/forgot-password', { email });
     return response.data;
@@ -100,6 +109,7 @@ export const AuthProvider = ({ children }) => {
         registerPatient,
         verifyEmail,
         resendVerification,
+        updateProfile,
         forgotPassword,
         resetPassword,
         updatePassword,

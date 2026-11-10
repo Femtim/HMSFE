@@ -7,8 +7,8 @@ export default function ProtectedRoute({ children, allowedRoles }) {
 
   if (initializing) {
     return (
-      <div className="min-h-screen bg-[#1E293B] flex items-center justify-center text-white font-bold">
-        Loading Hospital Portal...
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center text-slate-200 text-sm font-medium">
+        Loading clinical workspace...
       </div>
     );
   }

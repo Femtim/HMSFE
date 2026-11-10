@@ -1,9 +1,8 @@
 import axios from 'axios';
 
 const rawBaseUrl =
-  import.meta.env.VITE_API_BASE_URL;
+  import.meta.env.VITE_API_BASE_URL ;
 
-// Automatically ensure /api/v1 is at the end of the URL
 const normalizedBaseUrl = rawBaseUrl.replace(/\/$/, '').endsWith('/api/v1')
   ? rawBaseUrl.replace(/\/$/, '')
   : `${rawBaseUrl.replace(/\/$/, '')}/api/v1`;

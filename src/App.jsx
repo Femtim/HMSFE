@@ -14,12 +14,26 @@ import DoctorConsole from './views/DoctorConsole';
 import SuperAdminDashboard from './views/SuperAdminDashboard';
 import LiveWaitingBoard from './views/LiveWaitingBoard';
 
+import PatientDashboardTab from './components/patient/PatientDashboardTab';
+import PatientAppointmentTab from './components/patient/PatientAppointmentTab';
+import PatientServicesTab from './components/patient/PatientServicesTab';
+import PatientAboutTab from './components/patient/PatientAboutTab';
+import PatientContactTab from './components/patient/PatientContactTab';
+import PatientProfileTab from './components/patient/PatientProfileTab';
+
+import DoctorDeskTab from './components/doctor/DoctorDeskTab';
+import DoctorTriageTab from './components/doctor/DoctorTriageTab';
+import DoctorScheduleTab from './components/doctor/DoctorScheduleTab';
+
+import AdminOperationsTab from './components/admin/AdminOperationsTab';
+import AdminAnalyticsTab from './components/admin/AdminAnalyticsTab';
+import AdminDirectoryTab from './components/admin/AdminDirectoryTab';
+
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* Public Routes */}
           <Route path="/login" element={<LoginView />} />
           <Route path="/register" element={<RegisterPatientView />} />
           <Route path="/verify-email/:token" element={<VerifyEmailView />} />
@@ -27,7 +41,7 @@ export default function App() {
           <Route path="/reset-password/:token" element={<ResetPasswordView />} />
           <Route path="/tv-board/:department" element={<LiveWaitingBoard />} />
 
-          {/* Protected Role Portals wrapped in Hospital Navbar & Sidebar */}
+          {/* Nested Patient Routes */}
           <Route
             path="/patient"
             element={
@@ -37,8 +51,17 @@ export default function App() {
                 </DashboardLayout>
               </ProtectedRoute>
             }
-          />
+          >
+            <Route index element={<Navigate to="appointment" replace />} />
+            <Route path="dashboard" element={<PatientDashboardTab />} />
+            <Route path="appointment" element={<PatientAppointmentTab />} />
+            <Route path="services" element={<PatientServicesTab />} />
+            <Route path="about" element={<PatientAboutTab />} />
+            <Route path="contact" element={<PatientContactTab />} />
+            <Route path="profile" element={<PatientProfileTab />} />
+          </Route>
 
+          {/* Nested Doctor Routes */}
           <Route
             path="/doctor"
             element={
@@ -48,8 +71,14 @@ export default function App() {
                 </DashboardLayout>
               </ProtectedRoute>
             }
-          />
+          >
+            <Route index element={<Navigate to="desk" replace />} />
+            <Route path="desk" element={<DoctorDeskTab />} />
+            <Route path="triage" element={<DoctorTriageTab />} />
+            <Route path="schedule" element={<DoctorScheduleTab />} />
+          </Route>
 
+          {/* Nested Super Admin Routes */}
           <Route
             path="/admin"
             element={
@@ -59,9 +88,13 @@ export default function App() {
                 </DashboardLayout>
               </ProtectedRoute>
             }
-          />
+          >
+            <Route index element={<Navigate to="operations" replace />} />
+            <Route path="operations" element={<AdminOperationsTab />} />
+            <Route path="analytics" element={<AdminAnalyticsTab />} />
+            <Route path="directory" element={<AdminDirectoryTab />} />
+          </Route>
 
-          {/* Default Fallback */}
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>

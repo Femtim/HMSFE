@@ -11,6 +11,7 @@ export default function LoginView() {
   const [serverError, setServerError] = useState('');
   const [unverifiedEmail, setUnverifiedEmail] = useState('');
   const [resendStatus, setResendStatus] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -64,7 +65,7 @@ export default function LoginView() {
       <div className="w-full max-w-md bg-white rounded-md shadow-sm border border-slate-200 overflow-hidden">
         <div className="bg-slate-900 px-6 py-5 text-white border-b border-slate-800">
           <p className="text-xs font-medium text-teal-400 uppercase tracking-wider">
-            LIVING HOSPITAL
+            GENERAL HOSPITAL
           </p>
           <h1 className="text-lg font-semibold mt-0.5">Sign in to your account</h1>
           <p className="text-slate-400 text-xs mt-0.5">
@@ -101,7 +102,7 @@ export default function LoginView() {
             <input
               type="email"
               name="email"
-              placeholder="name@domain.com"
+              placeholder="name@gmail.com"
               value={formik.values.email}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
@@ -128,19 +129,28 @@ export default function LoginView() {
                 Forgot password?
               </Link>
             </div>
-            <input
-              type="password"
-              name="password"
-              placeholder="Enter password"
-              value={formik.values.password}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              className={`w-full px-3 py-2 rounded border text-slate-900 text-sm outline-none ${
-                formik.touched.password && formik.errors.password
-                  ? 'border-red-400'
-                  : 'border-slate-300 focus:border-teal-600'
-              }`}
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                placeholder="Enter password"
+                value={formik.values.password}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                className={`w-full px-3 py-2 pr-16 rounded border text-slate-900 text-sm outline-none ${
+                  formik.touched.password && formik.errors.password
+                    ? 'border-red-400'
+                    : 'border-slate-300 focus:border-teal-600'
+                }`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 px-3 text-xs font-medium text-slate-500 hover:text-slate-800 focus:outline-none"
+              >
+                {showPassword ? 'Hide' : 'Show'}
+              </button>
+            </div>
             {formik.touched.password && formik.errors.password && (
               <p className="text-xs text-red-600 mt-1">
                 {formik.errors.password}
@@ -159,7 +169,7 @@ export default function LoginView() {
           <p className="text-center text-xs text-slate-600 pt-1">
             New patient?{' '}
             <Link to="/register" className="text-teal-600 font-medium hover:underline">
-              Register for a hospital card
+              Register an account
             </Link>
           </p>
         </form>

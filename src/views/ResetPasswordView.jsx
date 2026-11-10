@@ -9,6 +9,8 @@ export default function ResetPasswordView() {
   const navigate = useNavigate();
   const { resetPassword } = useAuth();
   const [status, setStatus] = useState({ type: '', text: '' });
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const formik = useFormik({
     initialValues: {
@@ -60,19 +62,28 @@ export default function ResetPasswordView() {
             <label className="block text-xs font-medium text-slate-700 mb-1">
               New Password
             </label>
-            <input
-              type="password"
-              name="newPassword"
-              placeholder="Minimum 8 characters"
-              value={formik.values.newPassword}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              className={`w-full px-3 py-2 rounded border text-sm outline-none ${
-                formik.touched.newPassword && formik.errors.newPassword
-                  ? 'border-red-400'
-                  : 'border-slate-300 focus:border-teal-600'
-              }`}
-            />
+            <div className="relative">
+              <input
+                type={showNewPassword ? 'text' : 'password'}
+                name="newPassword"
+                placeholder="Minimum 8 characters"
+                value={formik.values.newPassword}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                className={`w-full px-3 py-2 pr-16 rounded border text-sm outline-none ${
+                  formik.touched.newPassword && formik.errors.newPassword
+                    ? 'border-red-400'
+                    : 'border-slate-300 focus:border-teal-600'
+                }`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowNewPassword(!showNewPassword)}
+                className="absolute inset-y-0 right-0 px-3 text-xs font-medium text-slate-500 hover:text-slate-800 focus:outline-none"
+              >
+                {showNewPassword ? 'Hide' : 'Show'}
+              </button>
+            </div>
             {formik.touched.newPassword && formik.errors.newPassword && (
               <p className="text-xs text-red-600 mt-1">
                 {formik.errors.newPassword}
@@ -84,19 +95,28 @@ export default function ResetPasswordView() {
             <label className="block text-xs font-medium text-slate-700 mb-1">
               Confirm New Password
             </label>
-            <input
-              type="password"
-              name="confirmPassword"
-              placeholder="Re-enter password"
-              value={formik.values.confirmPassword}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              className={`w-full px-3 py-2 rounded border text-sm outline-none ${
-                formik.touched.confirmPassword && formik.errors.confirmPassword
-                  ? 'border-red-400'
-                  : 'border-slate-300 focus:border-teal-600'
-              }`}
-            />
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? 'text' : 'password'}
+                name="confirmPassword"
+                placeholder="Re-enter password"
+                value={formik.values.confirmPassword}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                className={`w-full px-3 py-2 pr-16 rounded border text-sm outline-none ${
+                  formik.touched.confirmPassword && formik.errors.confirmPassword
+                    ? 'border-red-400'
+                    : 'border-slate-300 focus:border-teal-600'
+                }`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute inset-y-0 right-0 px-3 text-xs font-medium text-slate-500 hover:text-slate-800 focus:outline-none"
+              >
+                {showConfirmPassword ? 'Hide' : 'Show'}
+              </button>
+            </div>
             {formik.touched.confirmPassword && formik.errors.confirmPassword && (
               <p className="text-xs text-red-600 mt-1">
                 {formik.errors.confirmPassword}
