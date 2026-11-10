@@ -1,12 +1,16 @@
 import { io } from 'socket.io-client';
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
+const rawSocketUrl =
+  import.meta.env.VITE_SOCKET_URL ;
+
+const SOCKET_URL = rawSocketUrl.replace(/\/api\/v1\/?$/, '').replace(/\/$/, '');
 
 export const socket = io(SOCKET_URL, {
   autoConnect: true,
   reconnection: true,
   reconnectionAttempts: 10,
   reconnectionDelay: 2000,
+  transports: ['websocket', 'polling'],
 });
 
 export default socket;

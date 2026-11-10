@@ -8,15 +8,14 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [initializing, setInitializing] = useState(true);
 
-  // Restore session on page refresh
   useEffect(() => {
-    const savedToken = localStorage.getItem('hospital_token');
-    const savedUser = localStorage.getItem('hospital_user');
+    const storedToken = localStorage.getItem('hospital_token');
+    const storedUser = localStorage.getItem('hospital_user');
 
-    if (savedToken && savedUser) {
+    if (storedToken && storedUser) {
       try {
-        setToken(savedToken);
-        setUser(JSON.parse(savedUser));
+        setToken(storedToken);
+        setUser(JSON.parse(storedUser));
       } catch (err) {
         localStorage.removeItem('hospital_token');
         localStorage.removeItem('hospital_user');
@@ -25,7 +24,6 @@ export const AuthProvider = ({ children }) => {
     setInitializing(false);
   }, []);
 
-  // Login Handler (Works for Patient, Doctor, and Super_Admin)
   const login = async (email, password) => {
     const response = await axiosClient.post('/auth/login', { email, password });
     const { token: jwtToken, data: userData } = response.data;
@@ -35,25 +33,64 @@ export const AuthProvider = ({ children }) => {
 
     setToken(jwtToken);
     setUser(userData);
-
-    return userData; // Returns user so LoginView can redirect by userData.role
-  };
-
-  // Patient Self-Registration Handler
-  const registerPatient = async (registrationPayload) => {
-    const response = await axiosClient.post('/auth/register', registrationPayload);
-    const { token: jwtToken, data: userData } = response.data;
-
-    localStorage.setItem('hospital_token', jwtToken);
-    localStorage.setItem('hospital_user', JSON.stringify(userData));
-
-    setToken(jwtToken);
-    setUser(userData);
-
     return userData;
   };
 
-  // Logout Handler
+  const registerPatient = async (registrationPayload) => {
+    const response = await axiosClient.post('/auth/register', registrationPayload);
+    return response.data;
+  };
+
+  const verifyEmail = async (verificationToken) => {
+    const response = await axiosClient.get(`/auth/verify-email/${verificationToken}`);
+    return response.data;
+  };
+
+  const resendVerification = async (email) => {
+    const response = await axiosClient.post('/auth/resend-verification', { email });
+    return response.data;
+  };
+
+  const updateProfile = async (profilePayload) => {
+    const response = await axiosClient.patch('/auth/update-profile', profilePayload);
+    const updatedUser = response.data.data;
+
+    localStorage.setItem('hospital_user', JSON.stringify(updatedUser));
+    setUser(updatedUser);
+    return response.data;
+  };
+
+  const forgotPassword = async (email) => {
+    const response = await axiosClient.post('/auth/forgot-password', { email });
+    return response.data;
+  };
+
+  const resetPassword = async (resetToken, newPassword) => {
+    const response = await axiosClient.post(`/auth/reset-password/${resetToken}`, {
+      newPassword,
+    });
+    return response.data;
+  };
+
+  const updatePassword = async (currentPassword, newPassword) => {
+    const response = await axiosClient.patch('/auth/update-password', {
+      currentPassword,
+      newPassword,
+    });
+    return response.data;
+  };
+
+  const deleteAccount = async (password) => {
+    const response = await axiosClient.delete('/auth/delete-account', {
+      data: { password },
+    });
+    localStorage.removeItem('hospital_token');
+    localStorage.removeItem('hospital_user');
+    setToken(null);
+    setUser(null);
+    return response.data;
+  };
+
   const logout = () => {
     localStorage.removeItem('hospital_token');
     localStorage.removeItem('hospital_user');
@@ -67,10 +104,16 @@ export const AuthProvider = ({ children }) => {
         user,
         token,
         initializing,
-        isAuthenticated: Boolean(token && user),
-        role: user?.role || null,
+        isAuthenticated: !!token && !!user,
         login,
         registerPatient,
+        verifyEmail,
+        resendVerification,
+        updateProfile,
+        forgotPassword,
+        resetPassword,
+        updatePassword,
+        deleteAccount,
         logout,
       }}
     >
@@ -79,7 +122,6 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-// Custom hook for consuming AuthContext in any View
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

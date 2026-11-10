@@ -10,6 +10,7 @@ export default function RegisterPatientView() {
   const [serverError, setServerError] = useState('');
   const [registeredSuccessMsg, setRegisteredSuccessMsg] = useState('');
   const [resendFeedback, setResendFeedback] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const formik = useFormik({
     initialValues: {
@@ -57,11 +58,11 @@ export default function RegisterPatientView() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
           </div>
-          <h2 className="text-base font-semibold text-slate-900">Verify Your Email</h2>
-          <p className="text-xs text-slate-600 leading-relaxed break-all">{registeredSuccessMsg}</p>
+          <h2 className="text-base font-semibold text-slate-900">Check Your Email Inbox</h2>
+          <p className="text-xs text-slate-600 leading-relaxed">{registeredSuccessMsg}</p>
 
           {resendFeedback && (
-            <p className="text-xs font-medium text-teal-800 bg-teal-50 p-2.5 rounded border border-teal-200 break-all">
+            <p className="text-xs font-medium text-teal-800 bg-teal-50 p-2.5 rounded border border-teal-200">
               {resendFeedback}
             </p>
           )}
@@ -158,7 +159,7 @@ export default function RegisterPatientView() {
               <input
                 type="email"
                 name="email"
-                placeholder="patient@domain.com"
+                placeholder="patient@gmail.com"
                 value={formik.values.email}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
@@ -177,19 +178,28 @@ export default function RegisterPatientView() {
               <label className="block text-xs font-medium text-slate-700 mb-1">
                 Password
               </label>
-              <input
-                type="password"
-                name="password"
-                placeholder="Minimum 8 characters"
-                value={formik.values.password}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                className={`w-full px-3 py-2 rounded border text-sm outline-none ${
-                  formik.touched.password && formik.errors.password
-                    ? 'border-red-400'
-                    : 'border-slate-300 focus:border-teal-600'
-                }`}
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  name="password"
+                  placeholder="Minimum 8 characters"
+                  value={formik.values.password}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  className={`w-full px-3 py-2 pr-16 rounded border text-sm outline-none ${
+                    formik.touched.password && formik.errors.password
+                      ? 'border-red-400'
+                      : 'border-slate-300 focus:border-teal-600'
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 px-3 text-xs font-medium text-slate-500 hover:text-slate-800 focus:outline-none"
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
               {formik.touched.password && formik.errors.password && (
                 <p className="text-xs text-red-600 mt-1">{formik.errors.password}</p>
               )}

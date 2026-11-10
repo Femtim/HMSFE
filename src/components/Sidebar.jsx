@@ -1,7 +1,8 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { DEPARTMENTS } from './Navbar';
+import SidebarNavMenu from './navigation/SidebarNavMenu';
+import TvMonitorControl from './navigation/TvMonitorControl';
 
 export default function Sidebar({
   sidebarOpen,
@@ -14,30 +15,11 @@ export default function Sidebar({
   onOpenSettingsModal,
 }) {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const isPatient = user?.role === 'PATIENT';
 
   const cardNumber =
     user?.hospitalCardNumber || user?.patientProfile?.hospitalCardNumber || 'STAFF-ID';
-
-  const roleNavigation = {
-    PATIENT: [
-      { id: 'dashboard', label: 'Appointments & Check-In' },
-      { id: 'queue', label: 'Queue Status' },
-      { id: 'card', label: 'Patient Card Details' },
-      { id: 'departments', label: 'Clinic Hours & Units' },
-    ],
-    DOCTOR: [
-      { id: 'dashboard', label: 'Consultation Desk' },
-      { id: 'triage', label: 'Triage Protocol' },
-      { id: 'schedule', label: 'Shift & Room Assignment' },
-    ],
-    SUPER_ADMIN: [
-      { id: 'dashboard', label: 'Staff & Operations' },
-      { id: 'analytics', label: 'Department Metrics' },
-      { id: 'directory', label: 'Clinician Directory' },
-    ],
-  };
-
-  const navItems = roleNavigation[user?.role] || roleNavigation.PATIENT;
 
   return (
     <>
@@ -53,7 +35,7 @@ export default function Sidebar({
           sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
-        <div className="p-4 space-y-6 overflow-y-auto">
+        <div className="p-4 mt-14 lg:mt-4 space-y-6 overflow-y-auto">
           <div className="bg-slate-800/80 p-3.5 rounded border border-slate-700/80 space-y-2">
             <div className="flex justify-between items-center">
               <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-teal-950 text-teal-300 border border-teal-800/60">
@@ -66,10 +48,13 @@ export default function Sidebar({
               <p className="text-xs text-slate-400 truncate">{user?.email}</p>
             </div>
 
-            {user?.role === 'PATIENT' && (
+            {isPatient && (
               <div className="pt-2 border-t border-slate-700/80 flex justify-between text-xs text-slate-400">
                 <span>
-                  Blood Group: <strong className="text-slate-200">{user?.patientProfile?.bloodGroup || 'O+'}</strong>
+                  Blood Group:{' '}
+                  <strong className="text-slate-200">
+                    {user?.patientProfile?.bloodGroup || 'O+'}
+                  </strong>
                 </span>
                 <span>
                   Priority:{' '}
@@ -83,70 +68,34 @@ export default function Sidebar({
             {user?.role === 'DOCTOR' && (
               <div className="pt-2 border-t border-slate-700/80 flex justify-between text-xs text-slate-400">
                 <span>
-                  Unit: <strong className="text-slate-200">{user?.doctorProfile?.department || 'OPD'}</strong>
+                  Unit:{' '}
+                  <strong className="text-slate-200">
+                    {user?.doctorProfile?.department || 'OPD'}
+                  </strong>
                 </span>
                 <span>
-                  Room: <strong className="text-slate-200">{user?.doctorProfile?.consultationRoom || '101'}</strong>
+                  Room:{' '}
+                  <strong className="text-slate-200">
+                    {user?.doctorProfile?.consultationRoom || '101'}
+                  </strong>
                 </span>
               </div>
             )}
           </div>
 
-          <div className="space-y-1">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 px-2.5 mb-1.5">
-              Navigation
-            </p>
-            {navItems.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => {
-                  setSelectedNavSection(item.id);
-                  if (item.id !== 'dashboard') {
-                    onOpenInfoModal();
-                  }
-                  setSidebarOpen(false);
-                }}
-                className={`w-full text-left px-3 py-2 rounded text-xs font-medium transition ${
-                  selectedNavSection === item.id
-                    ? 'bg-teal-700 text-white'
-                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
+          <SidebarNavMenu
+            role={user?.role}
+            selectedNavSection={selectedNavSection}
+            setSelectedNavSection={setSelectedNavSection}
+            onOpenInfoModal={onOpenInfoModal}
+            onCloseMobileSidebar={() => setSidebarOpen(false)}
+          />
 
-          <div className="bg-slate-800/40 border border-slate-800 rounded p-3 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-slate-300">
-                Monitor Display
-              </span>
-              <span className="text-[10px] text-emerald-400 font-mono">
-                LIVE
-              </span>
-            </div>
-            <select
-              value={tvDepartment}
-              onChange={(e) => setTvDepartment(e.target.value)}
-              className="w-full bg-slate-900 text-slate-200 text-xs px-2.5 py-1.5 rounded border border-slate-700 focus:outline-none focus:border-teal-600"
-            >
-              {DEPARTMENTS.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.label}
-                </option>
-              ))}
-            </select>
-            <Link
-              to={`/tv-board/${tvDepartment}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block w-full text-center bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium py-1.5 rounded border border-slate-700 transition"
-            >
-              Launch Display Window
-            </Link>
-          </div>
+          <TvMonitorControl
+            tvDepartment={tvDepartment}
+            setTvDepartment={setTvDepartment}
+            variant="sidebar"
+          />
 
           <div className="border-t border-slate-800 pt-4 px-1 space-y-1.5 text-xs text-slate-400 font-normal">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
@@ -171,12 +120,16 @@ export default function Sidebar({
           <button
             type="button"
             onClick={() => {
-              onOpenSettingsModal();
+              if (isPatient) {
+                navigate('/patient/profile');
+              } else {
+                onOpenSettingsModal();
+              }
               setSidebarOpen(false);
             }}
             className="w-full text-left px-3 py-2 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition"
           >
-            Account Security
+            {isPatient ? 'Profile & Settings' : 'Account Security'}
           </button>
 
           <button

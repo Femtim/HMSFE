@@ -1,6 +1,5 @@
 import * as Yup from 'yup';
 
-// Flexible Nigerian & international phone validation (allows 080..., +234..., etc.)
 const phoneRegExp = /^(\+?234|0)?[789][01]\d{8}$/;
 
 export const loginSchema = Yup.object({
@@ -31,6 +30,28 @@ export const registerPatientSchema = Yup.object({
   dateOfBirth: Yup.date()
     .max(new Date(), 'Date of birth cannot be in the future')
     .required('Date of birth is required'),
+  gender: Yup.string()
+    .oneOf(['MALE', 'FEMALE', 'OTHER'])
+    .required('Gender is required'),
+  bloodGroup: Yup.string()
+    .oneOf(['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'])
+    .required('Blood group is required'),
+  isVulnerable: Yup.boolean(),
+});
+
+export const updatePatientProfileSchema = Yup.object({
+  fullName: Yup.string()
+    .min(3, 'Full name must be at least 3 characters')
+    .required('Full name is required'),
+  phone: Yup.string()
+    .matches(
+      phoneRegExp,
+      'Enter a valid Nigerian phone number (e.g. 08012345678 or +2348012345678)'
+    )
+    .required('Phone number is required'),
+  dateOfBirth: Yup.date()
+    .max(new Date(), 'Date of birth cannot be in the future')
+    .nullable(),
   gender: Yup.string()
     .oneOf(['MALE', 'FEMALE', 'OTHER'])
     .required('Gender is required'),

@@ -54,7 +54,7 @@ export default function LiveWaitingBoard() {
   return (
     <div className="min-h-screen bg-slate-950 text-white p-6 sm:p-8 font-sans flex flex-col justify-between">
       <div className="space-y-6">
-        <header className="flex flex-wrap justify-between items-center gap-4 bg-slate-900 p-5 rounded-lg border border-slate-800">
+        <header className="flex flex-wrap justify-between items-center gap-4 bg-slate-900 p-5 rounded-md border border-slate-800">
           <div>
             <span className="text-xs font-medium uppercase tracking-wider text-teal-400">
               Outpatient Queue Monitor
@@ -86,7 +86,7 @@ export default function LiveWaitingBoard() {
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-slate-900 p-6 rounded-lg border border-slate-800 space-y-4">
+          <div className="bg-slate-900 p-6 rounded-md border border-slate-800 space-y-4">
             <h2 className="text-sm font-semibold uppercase tracking-wider text-teal-400 border-b border-slate-800 pb-3">
               Now Calling
             </h2>
@@ -100,7 +100,7 @@ export default function LiveWaitingBoard() {
                 {calledTickets.map((t) => (
                   <div
                     key={t._id || t.ticketNumber}
-                    className="bg-teal-950/60 border border-teal-700/60 p-5 rounded-md flex justify-between items-center"
+                    className="bg-teal-950/60 border border-teal-700/60 p-5 rounded flex justify-between items-center"
                   >
                     <div>
                       <span className="text-xs font-medium uppercase text-teal-400 block">
@@ -122,7 +122,7 @@ export default function LiveWaitingBoard() {
             )}
           </div>
 
-          <div className="bg-slate-900 p-6 rounded-lg border border-slate-800 space-y-4">
+          <div className="bg-slate-900 p-6 rounded-md border border-slate-800 space-y-4">
             <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-400 border-b border-slate-800 pb-3">
               Waiting Queue ({waitingTickets.length})
             </h2>
@@ -136,7 +136,7 @@ export default function LiveWaitingBoard() {
                 {waitingTickets.map((t) => (
                   <div
                     key={t._id || t.ticketNumber}
-                    className="p-3.5 rounded-md bg-slate-950 border border-slate-800 text-center space-y-1"
+                    className="p-3.5 rounded bg-slate-950 border border-slate-800 text-center space-y-1"
                   >
                     <span className="text-xl font-mono font-bold text-white block">
                       {t.ticketNumber}
