@@ -64,7 +64,7 @@ export default function LoginView() {
       <div className="w-full max-w-md bg-white rounded-md shadow-sm border border-slate-200 overflow-hidden">
         <div className="bg-slate-900 px-6 py-5 text-white border-b border-slate-800">
           <p className="text-xs font-medium text-teal-400 uppercase tracking-wider">
-            HAQMS Portal
+            LIVING HOSPITAL
           </p>
           <h1 className="text-lg font-semibold mt-0.5">Sign in to your account</h1>
           <p className="text-slate-400 text-xs mt-0.5">
