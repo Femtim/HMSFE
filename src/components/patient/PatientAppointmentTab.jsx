@@ -41,7 +41,7 @@ export default function PatientAppointmentTab() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white p-5 rounded-md shadow-sm border border-slate-200 space-y-4">
           <div className="border-b border-slate-100 pb-3">
-            <h2 className="text-xl font-semibold text-slate-900">Book Consultation</h2>
+            <h2 className="text-xl font-semibold text-slate-900">Book an Appointment</h2>
             <p className="text-xs text-slate-500">
               Select a clinic unit, doctor, and available time slot
             </p>
