@@ -30,11 +30,11 @@ export default function Navbar({
         </button>
 
         <div className="flex items-center gap-2.5">
-          <div className="w-6 h-6 rounded bg-teal-700 flex items-center justify-center font-bold text-xs tracking-wider text-white">
-            HQ
+          <div className="w-10 py-4 h-6 rounded bg-teal-700 flex items-center justify-center font-bold text-xs tracking-wider text-white">
+            LSGN
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="font-semibold text-sm tracking-tight text-white">HAQMS</span>
+            <span className="font-semibold text-sm tracking-tight text-white">LIVING-SOUL GENERAL HOSPITAL</span>
             <span className="hidden xl:inline-block text-xs text-slate-400 font-normal">
               Hospital Queue & Appointment System
             </span>
@@ -42,7 +42,7 @@ export default function Navbar({
         </div>
       </div>
 
-      <RoleTopNav role={user?.role} />
+      {/* <RoleTopNav role={user?.role} /> */}
 
       <div className="flex items-center gap-3">
         <TvMonitorControl

@@ -4,7 +4,7 @@ export default function PatientAboutTab() {
   return (
     <div className="bg-white p-6 rounded-md border border-slate-200 shadow-sm space-y-4">
       <div className="border-b border-slate-100 pb-3">
-        <h2 className="text-base font-semibold text-slate-900">About HAQMS</h2>
+        <h2 className="text-base font-semibold text-slate-900">About LIVING-SOUL GENERAL HOSPITAL</h2>
         <p className="text-xs text-slate-500 mt-0.5">
           Intelligent Appointment Booking and Queue Management System
         </p>

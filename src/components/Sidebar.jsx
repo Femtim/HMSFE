@@ -32,7 +32,7 @@ export default function Sidebar({
           sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
-        <div className="p-4 space-y-6 overflow-y-auto">
+        <div className="p-4 mt-14 lg:mt-2 space-y-6 overflow-y-auto">
           <div className="bg-slate-800/80 p-3.5 rounded border border-slate-700/80 space-y-2">
             <div className="flex justify-between items-center">
               <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-teal-950 text-teal-300 border border-teal-800/60">
@@ -92,7 +92,7 @@ export default function Sidebar({
           />
 
           <div className="border-t border-slate-800 pt-4 px-1 space-y-1.5 text-xs text-slate-400 font-normal">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
+            <p className="text-[13px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
               Facility Hours
             </p>
             <p className="flex justify-between">
@@ -121,7 +121,7 @@ export default function Sidebar({
               }
               setSidebarOpen(false);
             }}
-            className="w-full text-left px-3 py-2 rounded text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition"
+            className="w-full text-left px-3 py-2 rounded text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition"
           >
             {isPatient ? 'Profile & Settings' : 'Account Security'}
           </button>
@@ -129,7 +129,7 @@ export default function Sidebar({
           <button
             type="button"
             onClick={logout}
-            className="w-full text-left px-3 py-2 rounded text-xs font-medium text-red-400 hover:bg-red-950/40 transition"
+            className="w-full text-left px-3 py-2 rounded text-sm font-medium text-red-400 hover:bg-red-950/40 transition"
           >
             Sign Out
           </button>

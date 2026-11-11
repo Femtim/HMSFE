@@ -40,7 +40,7 @@ export default function TvMonitorControl({
   return (
     <div className="hidden md:flex items-center bg-slate-800/80 border border-slate-700/80 rounded px-2.5 py-1 gap-2">
       <span className="w-2 h-2 rounded-full bg-emerald-500" />
-      <span className="text-xs text-slate-300 font-medium">Monitor:</span>
+      <span className="text-sm text-slate-300 font-medium">Monitor:</span>
       <select
         value={tvDepartment}
         onChange={(e) => setTvDepartment(e.target.value)}
@@ -56,7 +56,7 @@ export default function TvMonitorControl({
         to={`/tv-board/${tvDepartment}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="bg-slate-800 hover:bg-slate-700 text-teal-400 hover:text-teal-300 text-xs font-medium px-2 py-1 rounded border border-slate-700 transition"
+        className="bg-slate-800 hover:bg-slate-700 text-teal-400 hover:text-teal-300 text-sm font-medium px-2 py-1 rounded border border-slate-700 transition"
       >
         Live View
       </Link>

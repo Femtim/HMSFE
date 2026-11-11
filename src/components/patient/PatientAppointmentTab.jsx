@@ -41,7 +41,7 @@ export default function PatientAppointmentTab() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white p-5 rounded-md shadow-sm border border-slate-200 space-y-4">
           <div className="border-b border-slate-100 pb-3">
-            <h2 className="text-sm font-semibold text-slate-900">Book Consultation</h2>
+            <h2 className="text-xl font-semibold text-slate-900">Book Consultation</h2>
             <p className="text-xs text-slate-500">
               Select a clinic unit, doctor, and available time slot
             </p>
@@ -68,14 +68,14 @@ export default function PatientAppointmentTab() {
 
               <div>
                 <label className="block text-xs font-medium text-slate-700 mb-1">
-                  Clinician
+                  Doctor
                 </label>
                 <select
                   value={selectedDoctor}
                   onChange={(e) => setSelectedDoctor(e.target.value)}
                   className="w-full px-3 py-2 rounded border border-slate-300 text-sm bg-white"
                 >
-                  {doctors.length === 0 && <option value="">No clinicians on duty</option>}
+                  {doctors.length === 0 && <option value="">No Doctor on duty</option>}
                   {doctors.map((doc) => (
                     <option key={doc._id} value={doc._id}>
                       {doc.fullName} ({doc.doctorProfile?.consultationRoom})
@@ -146,7 +146,7 @@ export default function PatientAppointmentTab() {
 
         <div className="bg-white p-5 rounded-md shadow-sm border border-slate-200 space-y-4">
           <div className="border-b border-slate-100 pb-3">
-            <h2 className="text-sm font-semibold text-slate-900">Scheduled Appointments</h2>
+            <h2 className="text-xl font-semibold text-slate-900">Scheduled Appointments</h2>
             <p className="text-xs text-slate-500">Check in upon arrival at the hospital</p>
           </div>
 
