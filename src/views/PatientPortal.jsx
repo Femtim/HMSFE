@@ -1,42 +1,42 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Outlet } from 'react-router-dom';
-import axiosClient from '../api/axiosClient';
-import socket from '../api/socketClient';
-import { useAuth } from '../context/AuthContext';
+import React, { useState, useEffect, useCallback } from "react";
+import { Outlet } from "react-router-dom";
+import axiosClient from "../api/axiosClient";
+import socket from "../api/socketClient";
+import { useAuth } from "../context/AuthContext";
 
 export default function PatientPortal() {
   const { user } = useAuth();
 
-  const [department, setDepartment] = useState('GENERAL_OPD');
+  const [department, setDepartment] = useState("GENERAL_OPD");
   const [doctors, setDoctors] = useState([]);
-  const [selectedDoctor, setSelectedDoctor] = useState('');
+  const [selectedDoctor, setSelectedDoctor] = useState("");
   const [appointmentDate, setAppointmentDate] = useState(
-    new Date().toISOString().split('T')[0]
+    new Date().toISOString().split("T")[0],
   );
   const [availableSlots, setAvailableSlots] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState(null);
-  const [symptomsOrReason, setSymptomsOrReason] = useState('');
+  const [symptomsOrReason, setSymptomsOrReason] = useState("");
 
   const [myAppointments, setMyAppointments] = useState([]);
   const [activeTicket, setActiveTicket] = useState(null);
-  const [feedback, setFeedback] = useState({ type: '', text: '' });
+  const [feedback, setFeedback] = useState({ type: "", text: "" });
   const [loading, setLoading] = useState(false);
 
   const fetchMyData = useCallback(async () => {
     try {
       const [aptRes, ticketRes] = await Promise.all([
-        axiosClient.get('/appointments/my-appointments'),
-        axiosClient.get('/queue/my-active-ticket'),
+        axiosClient.get("/appointments/my-appointments"),
+        axiosClient.get("/queue/my-active-ticket"),
       ]);
       setMyAppointments(aptRes.data.data || []);
       const ticketData = ticketRes.data.data || null;
       setActiveTicket(ticketData);
 
       if (ticketData?.department) {
-        socket.emit('join:department', ticketData.department);
+        socket.emit("join:department", ticketData.department);
       }
     } catch (err) {
-      console.error('Error loading patient data:', err);
+      console.error("Error loading patient data:", err);
     }
   }, []);
 
@@ -47,10 +47,12 @@ export default function PatientPortal() {
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
-        const res = await axiosClient.get(`/appointments/doctors?department=${department}`);
+        const res = await axiosClient.get(
+          `/appointments/doctors?department=${department}`,
+        );
         const list = res.data.data || [];
         setDoctors(list);
-        setSelectedDoctor(list[0]?._id || '');
+        setSelectedDoctor(list[0]?._id || "");
       } catch (err) {
         console.error(err);
       }
@@ -66,7 +68,7 @@ export default function PatientPortal() {
     const fetchSlots = async () => {
       try {
         const res = await axiosClient.get(
-          `/appointments/slots?doctorId=${selectedDoctor}&date=${appointmentDate}`
+          `/appointments/slots?doctorId=${selectedDoctor}&date=${appointmentDate}`,
         );
         setAvailableSlots(res.data.availableSlots || []);
         setSelectedSlot(null);
@@ -79,39 +81,42 @@ export default function PatientPortal() {
 
   useEffect(() => {
     const handleQueueRefresh = () => fetchMyData();
-    socket.on('queue:updated', handleQueueRefresh);
-    socket.on('queue:patient_called', handleQueueRefresh);
+    socket.on("queue:updated", handleQueueRefresh);
+    socket.on("queue:patient_called", handleQueueRefresh);
     return () => {
-      socket.off('queue:updated', handleQueueRefresh);
-      socket.off('queue:patient_called', handleQueueRefresh);
+      socket.off("queue:updated", handleQueueRefresh);
+      socket.off("queue:patient_called", handleQueueRefresh);
     };
   }, [fetchMyData]);
 
   const handleBookAppointment = async (e) => {
     e.preventDefault();
     if (!selectedDoctor || !selectedSlot) {
-      setFeedback({ type: 'error', text: 'Select a doctor and an available time slot.' });
+      setFeedback({
+        type: "error",
+        text: "Select a doctor and an available time slot.",
+      });
       return;
     }
 
     setLoading(true);
-    setFeedback({ type: '', text: '' });
+    setFeedback({ type: "", text: "" });
     try {
-      await axiosClient.post('/appointments/book', {
+      await axiosClient.post("/appointments/book", {
         doctorId: selectedDoctor,
         appointmentDate,
         startTime: selectedSlot.startTime,
         endTime: selectedSlot.endTime,
         symptomsOrReason,
       });
-      setFeedback({ type: 'success', text: 'Appointment confirmed.' });
-      setSymptomsOrReason('');
+      setFeedback({ type: "success", text: "Appointment confirmed." });
+      setSymptomsOrReason("");
       setSelectedSlot(null);
       await fetchMyData();
     } catch (err) {
       setFeedback({
-        type: 'error',
-        text: err.response?.data?.message || 'Booking failed.',
+        type: "error",
+        text: err.response?.data?.message || "Booking failed.",
       });
     } finally {
       setLoading(false);
@@ -119,18 +124,18 @@ export default function PatientPortal() {
   };
 
   const handleCheckIn = async (appointmentReference) => {
-    setFeedback({ type: '', text: '' });
+    setFeedback({ type: "", text: "" });
     try {
-      await axiosClient.post('/queue/check-in', { appointmentReference });
+      await axiosClient.post("/queue/check-in", { appointmentReference });
       setFeedback({
-        type: 'success',
-        text: 'Checked into queue.',
+        type: "success",
+        text: "Checked into queue.",
       });
       await fetchMyData();
     } catch (err) {
       setFeedback({
-        type: 'error',
-        text: err.response?.data?.message || 'Check-in failed.',
+        type: "error",
+        text: err.response?.data?.message || "Check-in failed.",
       });
     }
   };
@@ -138,13 +143,13 @@ export default function PatientPortal() {
   const handleCancelAppointment = async (appointmentId) => {
     try {
       await axiosClient.patch(`/appointments/${appointmentId}/cancel`, {
-        cancellationReason: 'Cancelled by patient',
+        cancellationReason: "Cancelled by patient",
       });
       await fetchMyData();
     } catch (err) {
       setFeedback({
-        type: 'error',
-        text: err.response?.data?.message || 'Cancellation failed.',
+        type: "error",
+        text: err.response?.data?.message || "Cancellation failed.",
       });
     }
   };
@@ -152,24 +157,39 @@ export default function PatientPortal() {
   const ticketNumber = activeTicket?.ticketNumber;
   const ticketRoom = activeTicket?.consultationRoom;
   const ticketDoctor =
-    typeof activeTicket?.doctor === 'string'
+    typeof activeTicket?.doctor === "string"
       ? activeTicket.doctor
-      : activeTicket?.doctorId?.fullName || 'Assigned Clinician';
+      : activeTicket?.doctorId?.fullName || "Assigned Clinician";
 
   const cardNumber =
-    user?.hospitalCardNumber || user?.patientProfile?.hospitalCardNumber || 'N/A';
+    user?.hospitalCardNumber ||
+    user?.patientProfile?.hospitalCardNumber ||
+    "N/A";
 
   return (
-    <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6 ">
+    <div
+      className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6 "
+      style={{
+        backgroundImage:
+          "linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), url('/image2.png')",
+        backgroundSize: "100% 100%, 70% auto",
+        backgroundPosition: "center, center",
+        backgroundRepeat: "no-repeat, no-repeat",
+      }}
+    >
       <div className=" border border-slate-200 p-5 rounded-md shadow-sm flex flex-wrap justify-between items-center gap-4 bg-teal-50">
         <div>
           <p className="text-sm font-medium text-slate-500 uppercase tracking-wide">
             Outpatient Portal
           </p>
-          <h1 className="text-lg font-bold text-slate-900 mt-0.5">{user?.fullName}</h1>
+          <h1 className="text-lg font-bold text-slate-900 mt-0.5">
+            {user?.fullName}
+          </h1>
           <p className="text-xs text-slate-900 mt-0.5">
-            Card Number:{' '}
-            <span className="font-mono font-medium text-slate-800">{cardNumber}</span>
+            Card Number:{" "}
+            <span className="font-mono font-medium text-slate-800">
+              {cardNumber}
+            </span>
           </p>
         </div>
 

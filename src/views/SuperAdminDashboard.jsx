@@ -1,22 +1,22 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Outlet } from 'react-router-dom';
-import axiosClient from '../api/axiosClient';
+import React, { useState, useEffect, useCallback } from "react";
+import { Outlet } from "react-router-dom";
+import axiosClient from "../api/axiosClient";
 
 export default function SuperAdminDashboard() {
   const [doctors, setDoctors] = useState([]);
   const [analytics, setAnalytics] = useState([]);
-  const [feedback, setFeedback] = useState({ type: '', text: '' });
+  const [feedback, setFeedback] = useState({ type: "", text: "" });
 
   const fetchAdminData = useCallback(async () => {
     try {
       const [docsRes, analyticsRes] = await Promise.all([
-        axiosClient.get('/admin/doctors'),
-        axiosClient.get('/admin/analytics'),
+        axiosClient.get("/admin/doctors"),
+        axiosClient.get("/admin/analytics"),
       ]);
       setDoctors(docsRes.data.data || []);
       setAnalytics(analyticsRes.data.analytics || []);
     } catch (err) {
-      console.error('Error loading admin dashboard:', err);
+      console.error("Error loading admin dashboard:", err);
     }
   }, []);
 
@@ -36,7 +36,16 @@ export default function SuperAdminDashboard() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
+    <div
+      className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6"
+      style={{
+        backgroundImage:
+          "linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), url('/image2.png')",
+        backgroundSize: "100% 100%, 70% auto",
+        backgroundPosition: "center, center",
+        backgroundRepeat: "no-repeat, no-repeat",
+      }}
+    >
       <div className="bg-teal-50 border border-slate-200 p-5 rounded-md shadow-sm flex flex-wrap justify-between items-center gap-4">
         <div>
           <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">
@@ -48,10 +57,16 @@ export default function SuperAdminDashboard() {
         </div>
         <div className="flex gap-4 text-xs text-slate-600">
           <span>
-            Registered Clinicians: <strong className="text-slate-900 font-mono">{doctors.length}</strong>
+            Registered Clinicians:{" "}
+            <strong className="text-slate-900 font-mono">
+              {doctors.length}
+            </strong>
           </span>
           <span>
-            Active Units Today: <strong className="text-slate-900 font-mono">{analytics.length}</strong>
+            Active Units Today:{" "}
+            <strong className="text-slate-900 font-mono">
+              {analytics.length}
+            </strong>
           </span>
         </div>
       </div>
@@ -59,9 +74,9 @@ export default function SuperAdminDashboard() {
       {feedback.text && (
         <div
           className={`p-3 rounded text-xs font-medium ${
-            feedback.type === 'success'
-              ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-              : 'bg-red-50 text-red-700 border border-red-200'
+            feedback.type === "success"
+              ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+              : "bg-red-50 text-red-700 border border-red-200"
           }`}
         >
           {feedback.text}

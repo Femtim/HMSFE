@@ -1,56 +1,58 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Outlet } from 'react-router-dom';
-import axiosClient from '../api/axiosClient';
-import socket from '../api/socketClient';
-import { useAuth } from '../context/AuthContext';
+import React, { useState, useEffect, useCallback } from "react";
+import { Outlet } from "react-router-dom";
+import axiosClient from "../api/axiosClient";
+import socket from "../api/socketClient";
+import { useAuth } from "../context/AuthContext";
 
 export default function DoctorConsole() {
   const { user } = useAuth();
-  const department = user?.doctorProfile?.department || 'GENERAL_OPD';
+  const department = user?.doctorProfile?.department || "GENERAL_OPD";
 
   const [activeTicket, setActiveTicket] = useState(null);
   const [waitingQueue, setWaitingQueue] = useState([]);
-  const [feedback, setFeedback] = useState('');
+  const [feedback, setFeedback] = useState("");
   const [loading, setLoading] = useState(false);
 
   const fetchDoctorWorkspace = useCallback(async () => {
     try {
       const [activeRes, boardRes] = await Promise.all([
-        axiosClient.get('/queue/doctor-active'),
+        axiosClient.get("/queue/doctor-active"),
         axiosClient.get(`/queue/live-board/${department}`),
       ]);
       setActiveTicket(activeRes.data.data || null);
       const allDeptTickets = boardRes.data.data || [];
-      setWaitingQueue(allDeptTickets.filter((t) => t.status === 'WAITING'));
+      setWaitingQueue(allDeptTickets.filter((t) => t.status === "WAITING"));
     } catch (err) {
-      console.error('Error loading doctor console:', err);
+      console.error("Error loading doctor console:", err);
     }
   }, [department]);
 
   useEffect(() => {
     fetchDoctorWorkspace();
-    socket.emit('join:department', department);
+    socket.emit("join:department", department);
 
     const handleUpdate = () => fetchDoctorWorkspace();
-    socket.on('queue:updated', handleUpdate);
-    socket.on('queue:patient_called', handleUpdate);
+    socket.on("queue:updated", handleUpdate);
+    socket.on("queue:patient_called", handleUpdate);
 
     return () => {
-      socket.off('queue:updated', handleUpdate);
-      socket.off('queue:patient_called', handleUpdate);
+      socket.off("queue:updated", handleUpdate);
+      socket.off("queue:patient_called", handleUpdate);
     };
   }, [department, fetchDoctorWorkspace]);
 
   const handleCallNext = async () => {
     setLoading(true);
-    setFeedback('');
+    setFeedback("");
     try {
-      const res = await axiosClient.patch('/queue/call-next');
+      const res = await axiosClient.patch("/queue/call-next");
       setActiveTicket(res.data.data || null);
-      setFeedback(res.data.message || 'Queue updated.');
+      setFeedback(res.data.message || "Queue updated.");
       await fetchDoctorWorkspace();
     } catch (err) {
-      setFeedback(err.response?.data?.message || 'Could not call next patient.');
+      setFeedback(
+        err.response?.data?.message || "Could not call next patient.",
+      );
     } finally {
       setLoading(false);
     }
@@ -58,31 +60,44 @@ export default function DoctorConsole() {
 
   const handleCompleteConsultation = async (ticketId) => {
     setLoading(true);
-    setFeedback('');
+    setFeedback("");
     try {
       await axiosClient.patch(`/queue/${ticketId}/complete`);
       setActiveTicket(null);
-      setFeedback('Consultation completed.');
+      setFeedback("Consultation completed.");
       await fetchDoctorWorkspace();
     } catch (err) {
-      setFeedback(err.response?.data?.message || 'Error completing consultation.');
+      setFeedback(
+        err.response?.data?.message || "Error completing consultation.",
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-4 sm:p-6 space-y-6">
+    <div
+      className="max-w-6xl mx-auto p-4 sm:p-6 space-y-6"
+      style={{
+        backgroundImage:
+          "linear-gradient(rgba(255,255,255,0.8), rgba(255,255,255,0.8)), url('/image2.png')",
+        backgroundSize: "100% 100%, 70% auto",
+        backgroundPosition: "center, center",
+        backgroundRepeat: "no-repeat, no-repeat",
+      }}
+    >
       <div className="bg-teal-50 border border-slate-200 p-5 rounded-md shadow-sm flex flex-wrap justify-between items-center gap-4">
         <div>
           <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">
             Consultation Desk · {department}
           </span>
-          <h1 className="text-lg font-semibold text-slate-900 mt-0.5">{user?.fullName}</h1>
+          <h1 className="text-lg font-semibold text-slate-900 mt-0.5">
+            {user?.fullName}
+          </h1>
           <p className="text-xs text-slate-500">
-            Assigned Room:{' '}
+            Assigned Room:{" "}
             <strong className="text-slate-800">
-              {user?.doctorProfile?.consultationRoom || 'Room 101'}
+              {user?.doctorProfile?.consultationRoom || "Room 101"}
             </strong>
           </p>
         </div>

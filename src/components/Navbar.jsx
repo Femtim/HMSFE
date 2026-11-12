@@ -30,9 +30,9 @@ export default function Navbar({
         </button>
 
         <div className="flex items-center gap-2.5">
-          <div className="w-10 py-4 h-6 rounded bg-teal-700 flex items-center justify-center font-bold text-xs tracking-wider text-white">
-            LSGN
-          </div>
+          
+            <img src="/image2.png" alt="" className='h-12' />
+          
           <div className="flex items-baseline gap-2">
             <span className="font-semibold text-sm tracking-tight text-white">LIVING-SOUL GENERAL HOSPITAL</span>
             <span className="hidden xl:inline-block text-xs text-slate-400 font-normal">
