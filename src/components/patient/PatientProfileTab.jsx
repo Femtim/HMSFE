@@ -117,7 +117,6 @@ export default function PatientProfileTab() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Left Column: Patient Profile & Triage Details (View / Edit) */}
       <div className="bg-white p-6 rounded-md border border-slate-200 shadow-sm space-y-5">
         <div className="flex justify-between items-center border-b border-slate-100 pb-3">
           <div>
@@ -342,7 +341,6 @@ export default function PatientProfileTab() {
         )}
       </div>
 
-      {/* Right Column: Account & Security Settings */}
       <div className="bg-white p-6 rounded-md border border-slate-200 shadow-sm space-y-6">
         <div className="border-b border-slate-100 pb-3">
           <h2 className="text-base font-semibold text-slate-900">Account Settings</h2>

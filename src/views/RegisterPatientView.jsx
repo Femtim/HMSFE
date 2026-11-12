@@ -159,7 +159,7 @@ export default function RegisterPatientView() {
               <input
                 type="email"
                 name="email"
-                placeholder="patient@gmail.com"
+                placeholder="patient@domain.com"
                 value={formik.values.email}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}

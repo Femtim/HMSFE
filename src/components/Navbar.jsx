@@ -16,7 +16,7 @@ export default function Navbar({
   const isPatient = user?.role === 'PATIENT';
 
   return (
-    <header className="sticky top-0 z-30 bg-slate-900 text-slate-100 border-b border-slate-800 px-4 lg:px-6 h-14 flex items-center justify-between">
+    <header className="sticky top-0 z-30 bg-slate-900 text-slate-100 border-b border-slate-800 px-4 lg:px-8 h-14 flex items-center justify-between">
       <div className="flex items-center gap-3">
         <button
           type="button"
@@ -30,11 +30,11 @@ export default function Navbar({
         </button>
 
         <div className="flex items-center gap-2.5">
-          <div className="w-6 h-6 rounded bg-teal-700 flex items-center justify-center font-bold text-xs tracking-wider text-white">
-            GH
+          <div className="w-10 py-4 h-6 rounded bg-teal-700 flex items-center justify-center font-bold text-xs tracking-wider text-white">
+            LSGN
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="font-semibold text-sm tracking-tight text-white">GENERAL HOSPITAL</span>
+            <span className="font-semibold text-sm tracking-tight text-white">LIVING-SOUL GENERAL HOSPITAL</span>
             <span className="hidden xl:inline-block text-xs text-slate-400 font-normal">
               Hospital Queue & Appointment System
             </span>
@@ -42,7 +42,7 @@ export default function Navbar({
         </div>
       </div>
 
-      <RoleTopNav role={user?.role} />
+      {/* <RoleTopNav role={user?.role} /> */}
 
       <div className="flex items-center gap-3">
         <TvMonitorControl

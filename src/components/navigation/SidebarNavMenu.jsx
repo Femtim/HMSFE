@@ -7,7 +7,7 @@ export default function SidebarNavMenu({ role, onCloseMobileSidebar }) {
 
   return (
     <div className="space-y-1">
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 px-2.5 mb-1.5">
+      <p className="text-[13px] font-semibold uppercase tracking-wider text-slate-500 px-2.5 mb-1.5">
         Navigation
       </p>
 
@@ -19,7 +19,7 @@ export default function SidebarNavMenu({ role, onCloseMobileSidebar }) {
             if (onCloseMobileSidebar) onCloseMobileSidebar();
           }}
           className={({ isActive }) =>
-            `block w-full text-left px-3 py-2 rounded text-xs font-medium transition ${
+            `block w-full text-left px-3 py-2 rounded text-sm font-medium transition ${
               isActive
                 ? 'bg-teal-700 text-white'
                 : 'text-slate-300 hover:bg-slate-800 hover:text-white'

@@ -4,7 +4,7 @@ export default function PatientContactTab() {
   return (
     <div className="bg-white p-6 rounded-md border border-slate-200 shadow-sm space-y-5">
       <div className="border-b border-slate-100 pb-3">
-        <h2 className="text-base font-semibold text-slate-900">Contact & Facility Directory</h2>
+        <h2 className="text-lg font-semibold text-slate-900">Contact & Facility Directory</h2>
         <p className="text-xs text-slate-500 mt-0.5">
           Reach out to the outpatient records desk or emergency triage unit
         </p>

@@ -160,21 +160,21 @@ export default function PatientPortal() {
     user?.hospitalCardNumber || user?.patientProfile?.hospitalCardNumber || 'N/A';
 
   return (
-    <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
-      <div className="bg-white border border-slate-200 p-5 rounded-md shadow-sm flex flex-wrap justify-between items-center gap-4">
+    <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6 ">
+      <div className=" border border-slate-200 p-5 rounded-md shadow-sm flex flex-wrap justify-between items-center gap-4 bg-teal-50">
         <div>
-          <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+          <p className="text-sm font-medium text-slate-500 uppercase tracking-wide">
             Outpatient Portal
           </p>
-          <h1 className="text-lg font-semibold text-slate-900 mt-0.5">{user?.fullName}</h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <h1 className="text-lg font-bold text-slate-900 mt-0.5">{user?.fullName}</h1>
+          <p className="text-xs text-slate-900 mt-0.5">
             Card Number:{' '}
             <span className="font-mono font-medium text-slate-800">{cardNumber}</span>
           </p>
         </div>
 
         {activeTicket && (
-          <div className="bg-teal-50 border border-teal-200 px-4 py-2.5 rounded text-right">
+          <div className="bg-teal-200 border border-teal-200 px-4 py-2.5 rounded text-right">
             <span className="text-[10px] font-medium text-teal-800 uppercase block tracking-wider">
               Queue Ticket ({activeTicket.status})
             </span>
@@ -188,7 +188,6 @@ export default function PatientPortal() {
         )}
       </div>
 
-      {/* Renders active nested route (/patient/dashboard, /patient/appointment, etc.) */}
       <Outlet
         context={{
           user,
